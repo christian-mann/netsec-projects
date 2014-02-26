@@ -8,8 +8,8 @@ import edu.mann.netsec.utils.Utils;
 public class TCPPacket extends Packet {
 	private ByteBuffer data;
 	
-	private int srcPort; /* unsigned short */
-	private int dstPort; /* unsigned short */
+	public int srcPort; /* unsigned short */
+	public int dstPort; /* unsigned short */
 	private long seqNum; /* unsigned int */
 	private long ackNum; /* unsigned int */
 	private int dataOffset;

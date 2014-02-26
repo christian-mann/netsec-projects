@@ -1,4 +1,4 @@
-package edu.mann.netsec.utils;
+package edu.mann.netsec.packets;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 
-import edu.mann.netsec.packets.PacketSource;
+import edu.mann.netsec.utils.Utils;
 
 public class FilePacketSource implements PacketSource {
 

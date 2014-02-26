@@ -7,9 +7,9 @@ import edu.mann.netsec.utils.GridFormatter;
 public class UDPPacket extends Packet {
 	private ByteBuffer data;
 	
-	private short srcPort;
-	private short dstPort;
-	private short length; // in bytes
+	public int srcPort;
+	public int dstPort;
+	private int length; // in bytes
 	private short checksum;
 	private ByteBuffer payload;
 

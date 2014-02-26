@@ -20,8 +20,8 @@ public class IPPacket extends Packet {
 	private int timeToLive;
 	private int protocol;
 	private int headerChecksum;
-	private IPAddress srcAddress;
-	private IPAddress dstAddress;
+	public IPAddress srcAddress; // need public for packet filter
+	public IPAddress dstAddress; // need public for packet filter
 	private ByteBuffer payload;
 
 
