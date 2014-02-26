@@ -40,7 +40,7 @@ public class Main {
 		} else if (options.get("interface") != null) {
 			ps = (PacketSource)options.get("interface");
 		} else {
-			ps = (PacketSource) new NetworkPacketSource("eth1");
+			ps = NetworkPacketSource.fromPrompt();
 		}
 		
 		// combine packet filters
@@ -71,7 +71,7 @@ public class Main {
 			
 			cPackets += 1;
 			
-			if (cPackets >= options.getInt("count")) {
+			if (options.getInt("count") != null && cPackets >= options.getInt("count")) {
 				break;
 			}
 		}
@@ -89,7 +89,7 @@ public class Main {
 		MutuallyExclusiveGroup groupPacketSource = ap.addMutuallyExclusiveGroup();
 		groupPacketSource.addArgument("-r", "--read-from")
 			.metavar("FILE")
-			.setDefault(new FilePacketSource(filename))
+			//.setDefault(new FilePacketSource(filename))
 			.type(FilePacketSource.class)
 			.help("Read packets from FILE (reads from network by default).");
 		groupPacketSource.addArgument("-i", "--interface")
