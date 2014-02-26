@@ -9,6 +9,5 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="p1-netsec/adapter"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="adapter/SimplePacketDriver.dll"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
