@@ -9,10 +9,6 @@ import edu.papa.networks.SimplePacketDriver;
 
 public class NetworkPacketSource implements PacketSource {
 	
-	static {
-		System.loadLibrary("SimplePacketDriver");
-	}
-	
 	private SimplePacketDriver driver;
 	
 	public NetworkPacketSource(String string) {

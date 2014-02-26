@@ -1,6 +1,8 @@
 package edu.mann.netsec.packets;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import edu.mann.netsec.utils.GridFormatter;
 import edu.mann.netsec.utils.Utils;
@@ -23,6 +25,8 @@ public class IPPacket extends Packet {
 	public IPAddress srcAddress; // need public for packet filter
 	public IPAddress dstAddress; // need public for packet filter
 	private ByteBuffer payload;
+
+	private List<IPOption> options;
 
 
 	public IPPacket(ByteBuffer data) {
@@ -60,8 +64,8 @@ public class IPPacket extends Packet {
 		this.ihl = Utils.intFromBits(b, 4, 8);
 
 		this.typeOfService = data.get();
-		this.totalLength = data.getShort();
-		this.identification = data.getShort();
+		this.totalLength = data.getShort() & 0xFFFF;
+		this.identification = data.getShort() & 0xFFFF;
 		
 		b = data.get();
 		this.reserved = Utils.intFromBits(b, 0, 1) == 1;
@@ -78,7 +82,14 @@ public class IPPacket extends Packet {
 		this.srcAddress = new IPAddress(new byte[]{data.get(), data.get(), data.get(), data.get()});
 
 		this.dstAddress = new IPAddress(new byte[]{data.get(), data.get(), data.get(), data.get()});
-		// TODO options/padding
+
+		// so far we've parsed 5 ints worth of data
+		this.options = new ArrayList<IPOption>();
+		for (int i = 5; i < this.ihl; i++) {
+			byte[] optionData = new byte[4];
+			data.get(optionData);
+			this.options.add(new IPOption(optionData));
+		}
 
 		this.payload = data.slice();
 	}
@@ -89,7 +100,7 @@ public class IPPacket extends Packet {
 		gf.append(4, String.format("ihl=%d", this.ihl));
 		gf.append(8, String.format("type=%d", this.typeOfService));
 		gf.append(16, String.format("length=%d", this.totalLength));
-		gf.append(16, String.format("identification=%d", this.identification));
+		gf.append(16, String.format("identification=0x%x", this.identification));
 		gf.append(1, this.reserved ? "  " : "   ");
 		gf.append(1, this.dontFragment ? "DF" : "  ");
 		gf.append(1, this.moreFragments ? "MF" : "  ");
@@ -100,6 +111,9 @@ public class IPPacket extends Packet {
 		gf.append(32, String.format("srcIP = %s", this.srcAddress.toString()));
 		gf.append(32, String.format("dstIP = %s", this.dstAddress.toString()));
 
+		for (IPOption op : this.options) {
+			gf.append(32, op.toString());
+		}
 		return gf.format(32);
 	}
 

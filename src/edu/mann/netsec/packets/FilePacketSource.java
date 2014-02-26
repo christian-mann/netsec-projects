@@ -17,6 +17,10 @@ public class FilePacketSource implements PacketSource {
 	private ArrayList<ByteBuffer> buffers;
 	private File f;
 	
+	protected FilePacketSource() {
+		
+	}
+	
 	public FilePacketSource(String filename) throws IOException {
 		this(new File(filename));
 	}
@@ -60,6 +64,24 @@ public class FilePacketSource implements PacketSource {
 	
 	@Override
 	public String toString() {
-		return "\"" + this.f.getAbsolutePath() + "\"";
+		return "\"" + this.getFileName() + "\"";
+	}
+	
+	private String getFileName() {
+		if (this.f != null) {
+			return this.f.getAbsolutePath();
+		} else {
+			return "<no filename>";
+		}
+	}
+
+	public static FilePacketSource valueOf(String s) throws IOException {
+		FilePacketSource fps;
+		try {
+			fps = new PcapFilePacketSource(s);
+		} catch (IllegalArgumentException e) {
+			fps = new FilePacketSource(s);
+		}
+		return fps;
 	}
 }
