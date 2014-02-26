@@ -64,10 +64,10 @@ public class Main {
 					}
 					p = p.childPacket();
 				} while (p != null);
+				
+				output.println("#####################");
+				output.println();
 			}
-			
-			output.println("#####################");
-			output.println();
 			
 			cPackets += 1;
 			
