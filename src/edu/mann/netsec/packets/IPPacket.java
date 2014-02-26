@@ -1,6 +1,13 @@
+package edu.mann.netsec.packets;
+
 import java.nio.ByteBuffer;
 
-public class IPPacket extends EthernetPacket {
+import edu.mann.netsec.utils.GridFormatter;
+import edu.mann.netsec.utils.Utils;
+
+public class IPPacket extends Packet {
+	private ByteBuffer data;
+	
 	private int version;
 	private int ihl; // num of 32-bit words forming the header
 	private int typeOfService;
@@ -13,18 +20,17 @@ public class IPPacket extends EthernetPacket {
 	private int timeToLive;
 	private int protocol;
 	private int headerChecksum;
-	private byte[] srcAddress;
-	private byte[] dstAddress;
+	private IPAddress srcAddress;
+	private IPAddress dstAddress;
 	private ByteBuffer payload;
 
 
-	public IPAddress(EthernetPacket e) {
-		ByteBuffer data = e.payload();
-
+	public IPPacket(ByteBuffer data) {
+		this.data = data.duplicate();
 		this.parseData(data);
 	}
 
-	public IPPacket childPacket() {
+	public Packet childPacket() {
 		switch(this.protocol) {
 			case 1:
 				return new ICMPPacket(this.payload);
@@ -33,45 +39,48 @@ public class IPPacket extends EthernetPacket {
 			case 7:
 				return new UDPPacket(this.payload);
 			default:
-				return null; // yes, I know that's not quite semantic.
+				return null;
 		}
+	}
+	
+	public ByteBuffer getData() {
+		return this.data.duplicate();
+	}
+	
+	@Override
+	public String getType() {
+		return "ip";
 	}
 	
 	public void parseData(ByteBuffer data) {
 		byte b;
 		
 		b = data.get();
-		this.version = Utils.intFromBytes(b, 0, 3);
-		this.ihl = Utils.intFromBytes(b, 4, 7);
+		this.version = Utils.intFromBits(b, 0, 4);
+		this.ihl = Utils.intFromBits(b, 4, 8);
 
 		this.typeOfService = data.get();
 		this.totalLength = data.getShort();
 		this.identification = data.getShort();
 		
 		b = data.get();
-		this.reserved = b | (byte)0x80;
-		this.dontFragment = b | (byte)0x40;
-		this.moreFragments = b | (byte)0x20;
+		this.reserved = Utils.intFromBits(b, 0, 1) == 1;
+		this.dontFragment = Utils.intFromBits(b, 1, 2) == 1;
+		this.moreFragments = Utils.intFromBits(b, 2, 3) == 1;
 
 		byte c = data.get();
-		this.fragmentOffset = Utils.intFromBits({b, c}, 3, 15);
+		this.fragmentOffset = Utils.intFromBits(new byte[]{b, c}, 3, 16);
 
-		this.timeToLive = data.getByte();
-		this.protocol = data.getByte();
+		this.timeToLive = data.get();
+		this.protocol = data.get();
 		this.headerChecksum = data.getShort();
 
-		this.srcAddress = new byte[4];
-		for(int i = 0; i < 4; i++) {
-			this.srcAddress[i] = data.getByte();
-		}
+		this.srcAddress = new IPAddress(new byte[]{data.get(), data.get(), data.get(), data.get()});
 
-		this.dstAddress = new byte[4];
-		for(i = 0; i < 4; i++) {
-			this.dstAddress[i] = data.getByte();
-		}
+		this.dstAddress = new IPAddress(new byte[]{data.get(), data.get(), data.get(), data.get()});
 		// TODO options/padding
 
-		this.payload = data.duplicate();
+		this.payload = data.slice();
 	}
 
 	public String prettyPrint() {
@@ -79,7 +88,7 @@ public class IPPacket extends EthernetPacket {
 		gf.append(4, String.format("ver=%d", this.version));
 		gf.append(4, String.format("ihl=%d", this.ihl));
 		gf.append(8, String.format("type=%d", this.typeOfService));
-		gf.append(16, String.format("length=%d", this.length));
+		gf.append(16, String.format("length=%d", this.totalLength));
 		gf.append(16, String.format("identification=%d", this.identification));
 		gf.append(1, this.reserved ? "  " : "   ");
 		gf.append(1, this.dontFragment ? "DF" : "  ");
@@ -87,23 +96,14 @@ public class IPPacket extends EthernetPacket {
 		gf.append(13, String.format("offset=%d", this.fragmentOffset));
 		gf.append(8, String.format("ttl=%d", this.timeToLive));
 		gf.append(8, String.format("proto=%d", this.protocol));
-		gf.append(16, this.checksumValid ? "checksum valid" : "checksum invalid");
-		// src ip address
-		StringBuilder sbSrc = new StringBuilder();
-		for(int i = 0; i < 4; i++) {
-			if(i > 0) sbSrc.append(".");
-			sbSrc.append(String.format("%d", srcAddress[i]));
-		}
-		gf.append(32, String.format("srcIP = %s", sbSrc.toString()));
-
-		// dst ip address
-		StringBuilder sbDst = new StringBuilder();
-		for(i = 0; i < 4; i++) {
-			if(i > 0) sbDst.append(".");
-			sbDst.append(String.format("%d", dstAddress[i]));
-		}
-		gf.append(32, String.format("dstIP = %s", sbDst.toString()));
+		gf.append(16, this.checksumValid() ? "checksum valid" : "checksum invalid");
+		gf.append(32, String.format("srcIP = %s", this.srcAddress.toString()));
+		gf.append(32, String.format("dstIP = %s", this.dstAddress.toString()));
 
 		return gf.format(32);
+	}
+
+	private boolean checksumValid() {
+		return true;
 	}
 }

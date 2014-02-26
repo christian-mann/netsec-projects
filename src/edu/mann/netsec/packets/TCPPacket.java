@@ -1,11 +1,17 @@
-import java.nio.ByteBuffer;
-import java.net.Inet4Address;
+package edu.mann.netsec.packets;
 
-public class TCPPacket extends IPPacket {
-	private short srcPort;
-	private short dstPort;
-	private int seqNum;
-	private int ackNum;
+import java.nio.ByteBuffer;
+
+import edu.mann.netsec.utils.GridFormatter;
+import edu.mann.netsec.utils.Utils;
+
+public class TCPPacket extends Packet {
+	private ByteBuffer data;
+	
+	private int srcPort; /* unsigned short */
+	private int dstPort; /* unsigned short */
+	private long seqNum; /* unsigned int */
+	private long ackNum; /* unsigned int */
 	private int dataOffset;
 	private boolean ns;
 	private boolean cwr;
@@ -16,14 +22,13 @@ public class TCPPacket extends IPPacket {
 	private boolean rst;
 	private boolean syn;
 	private boolean fin;
-	private short windowSize;
-	private short checksum;
-	private short urgentPointer;
+	private int windowSize; /* unsigned short */
+	private int checksum; /* unsigned short */
+	private int urgentPointer; /* unsigned short */
 	private ByteBuffer payload;
 
-	public TCPPacket(IPPacket e) {
-		ByteBuffer data = e.payload();
-
+	public TCPPacket(ByteBuffer data) {
+		this.data = data.duplicate();
 		this.parseData(data);
 	}
 
@@ -31,34 +36,42 @@ public class TCPPacket extends IPPacket {
 		return null;
 	}
 	
+	public ByteBuffer getData() {
+		return data.duplicate();
+	}
+	
+	public String getType() {
+		return "tcp";
+	}
+	
 	public void parseData(ByteBuffer data) {
 		byte b;
 
-		this.srcPort = data.getShort();
-		this.dstPort = data.getShort();
-		this.seqNum = data.getInt();
-		this.ackNum = data.getInt();
+		this.srcPort = data.getShort() & 0xffff;
+		this.dstPort = data.getShort() & 0xffff;
+		this.seqNum = data.getInt() & 0xffffffffL;
+		this.ackNum = data.getInt() & 0xffffffffL;
 		
 		b = data.get();
-		this.dataOffset = b >> 4;
+		this.dataOffset = Utils.intFromBits(b, 0, 4);
 		// flags
-		this.ns = b & (byte)0x01;
+		this.ns = Utils.intFromBits(b, 7, 8) != 0;
 		b = data.get();
-		this.cwr = b & (byte)0x80;
-		this.ece = b & (byte)0x40;
-		this.urg = b & (byte)0x20;
-		this.ack = b & (byte)0x10;
-		this.psh = b & (byte)0x08;
-		this.rst = b & (byte)0x04;
-		this.syn = b & (byte)0x02;
-		this.fin = b & (byte)0x01;
+		this.cwr = (b & (byte)0x80) != 0;
+		this.ece = (b & (byte)0x40) != 0;
+		this.urg = (b & (byte)0x20) != 0;
+		this.ack = (b & (byte)0x10) != 0;
+		this.psh = (b & (byte)0x08) != 0;
+		this.rst = (b & (byte)0x04) != 0;
+		this.syn = (b & (byte)0x02) != 0;
+		this.fin = (b & (byte)0x01) != 0;
 
-		this.windowSize = data.getShort();
-		this.checksum = data.getShort();
-		this.urgentPointer = data.getShort();
+		this.windowSize = data.getShort() & 0xffff;
+		this.checksum = data.getShort() & 0xffff;
+		this.urgentPointer = data.getShort() & 0xffff;
 
 		// TODO options/padding
-		this.payload = data.duplicate();
+		this.payload = data.slice();
 		// TODO check checksum value
 	}
 
@@ -68,18 +81,19 @@ public class TCPPacket extends IPPacket {
 		gf.append(16, String.format("dstPort = %d", this.dstPort));
 		gf.append(32, String.format("seq = %d", this.seqNum));
 		gf.append(32, String.format("ack = %d", this.ackNum));
-		gf.append(4, String.format("Data\nOffset\n%d", this.dataOffset));
-		gf.append(3, String.format("Res."));
+		gf.append(4, String.format("Data\nOffset:\n%d", this.dataOffset));
+		gf.append(3, String.format("")); // reserved
 		gf.append(1, this.ns ? "NS" : "  ");
 		gf.append(1, this.cwr ? "CWR" : "   ");
 		gf.append(1, this.ece ? "ECE" : "   ");
 		gf.append(1, this.urg ? "URG" : "   ");
 		gf.append(1, this.ack ? "ACK" : "   ");
 		gf.append(1, this.psh ? "PSH" : "   ");
+		gf.append(1, this.rst ? "RST" : "   ");
 		gf.append(1, this.syn ? "SYN" : "   ");
 		gf.append(1, this.fin ? "FIN" : "   ");
 		gf.append(16, String.format("windowSize = %d", this.windowSize));
-		if(this.checksumValid) {
+		if(this.checksumValid()) {
 			gf.append(16, String.format("checksum valid"));
 		} else {
 			gf.append(16, String.format("checksum invalid"));
@@ -87,5 +101,9 @@ public class TCPPacket extends IPPacket {
 		gf.append(16, String.format("urgent offset = %d", this.urgentPointer));
 
 		return gf.format(32);
+	}
+	
+	private boolean checksumValid() {
+		return true;
 	}
 }

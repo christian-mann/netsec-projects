@@ -1,27 +1,36 @@
+package edu.mann.netsec.packets;
+
 import java.nio.ByteBuffer;
 
+import edu.mann.netsec.utils.GridFormatter;
+
 public class EthernetPacket extends Packet {
-	private byte[] preamble;
-	private byte[] sfd;
+	private ByteBuffer data;
+	
 	private MACAddress dstAddr;
 	private MACAddress srcAddr;
-	private byte[] vlan;
 	private short type;
 	private ByteBuffer payload;
 	private int checksum;
 
 	public EthernetPacket(ByteBuffer raw) {
-		super(raw);
+		this.data = raw.duplicate();
 		this.parseData(raw);
 	}
 
+	public Packet childPacket() {
+		return new IPPacket(this.payload.duplicate());
+	}
+	
+	public ByteBuffer getData() {
+		return this.data.duplicate();
+	}
+
+	public String getType() {
+		return "eth";
+	}
+
 	public void parseData(ByteBuffer data) {
-		this.preamble = new byte[7];
-		data.get(this.preamble);
-
-		this.sfd = new byte[1];
-		data.get(this.sfd);
-
 		byte[] addr = new byte[6];
 		data.get(addr);
 		this.dstAddr = new MACAddress(addr);
@@ -29,36 +38,24 @@ public class EthernetPacket extends Packet {
 		data.get(addr);
 		this.srcAddr = new MACAddress(addr);
 
-		this.vlan = new byte[4];
-		data.get(this.vlan);
-
 		this.type = data.getShort();
 
-		this.payload = data.duplicate();
+		this.payload = data.slice();
 
 		// checksum
 		checksum = data.getInt(data.remaining() - 4);
 	}
-}
 
-class MACAddress {
-
-	private byte[] addr;
-	
-	public MACAddress(byte[] addr) {
-		if (addr.length != 6) {
-			throw new IllegalArgumentException("MAC address must be 6 bytes long");
-		}
-		this.addr = addr;
+	public ByteBuffer payload() {
+		return this.payload.duplicate();
 	}
-
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		for(int i = 0; i < 6; i++) {
-			if(i != 0) sb.append(":");
-			sb.append(String.format("%X", addr[i]));
-		}
-		return sb.toString();
+	
+	public String prettyPrint() {
+		GridFormatter gf = new GridFormatter();
+		gf.append(6*8, "dst = " + this.dstAddr.toString());
+		gf.append(6*8, "src = " + this.srcAddr.toString());
+		//gf.append(16, Short.toString(this.type));
+		return gf.format(48);
 	}
 }
 

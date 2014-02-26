@@ -1,7 +1,24 @@
+package edu.mann.netsec.utils;
+
+import java.lang.StringBuilder;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class GridFormatter {
+	private ArrayList<GridBox> boxes;
+
+	private ArrayList<ArrayList<GridBox>> rows;
+
+	public GridFormatter() {
+		this.boxes = new ArrayList<GridBox>();
+		this.rows = new ArrayList<ArrayList<GridBox>>();
+	}
+
 	public void append(int windowSize, String s) {
-		this.boxes.append(GridBox(windowSize, s));
+		this.boxes.add(new GridBox(windowSize, s));
 	}
 
 	public String format(int width) {
@@ -27,30 +44,88 @@ public class GridFormatter {
 		sb.append(' ');
 		sb.append('\n');
 
-		// third row is composed of +-+-+- etc
+		sb.append(delimiterRow(width));
+
+		this.layout(width);
+
+		for (List<GridBox> row : this.rows) {
+			for (int r = 0; r < row.get(0).height(); r++) {
+				sb.append('|');
+				for (GridBox box : row) {
+					sb.append(box.getRow(r));
+					sb.append('|');
+				}
+				sb.append('\n');
+			}
+			sb.append(delimiterRow(width));
+		}
+
+		return sb.toString();
+	}
+
+	private String delimiterRow(int width) {
+		StringBuilder sb = new StringBuilder();
+
 		for(int i = 0; i < width; i++) {
 			sb.append('+');
 			sb.append('-');
 		}
-		sb.append('-');
+		sb.append('+');
 		sb.append('\n');
+
+		return sb.toString();
+	}
+
+	private void layout(int width) {
+		assert width > 0;
+
+		LinkedList<GridBox> boxes = new LinkedList<GridBox>(this.boxes);
+
+		while ( ! boxes.isEmpty()) {
+			// we need to work out how tall this row should be
+			ArrayList<GridBox> row = new ArrayList<GridBox>();
+			int curWidth = 0;
+			int minHeight = 0;
+
+			do {
+				GridBox box = boxes.pop();
+				curWidth += box.width;
+				minHeight = Math.max(minHeight, box.minHeight());
+				row.add(box);
+			} while (curWidth < width);
+
+			// for now, must be exactly the right width.
+			if (curWidth != width) {
+				throw new RuntimeException("Layout failure.");
+			}
+
+			for (GridBox box : row) {
+				box.layout(minHeight);
+			}
+
+			// add row to list
+			this.rows.add(row);
+		}
 	}
 }
 
 class GridBox {
 	public final int width;
 	public final String s;
-	public final int minHeight;
 
 	private String[] inLines;
+	private String[] unsizedOutLines;
 	private String[] outLines;
+	private int scaledWidth;
 	
 	public GridBox(int width, String s) {
-		this.width = width * 2 - 1; // two characters per bit, but one character for border
+		this.width = width;
+		this.scaledWidth = width * 2 - 1; // two characters per bit, but one character for border
 		this.s = s;
 
-		this.inLines = StringUtils.split(s, '\n');
-		this.minHeight = this.inLines.length;
+		this.inLines = s.split("\n");
+
+		this.layout();
 	}
 
 	public String getRow(int index) {
@@ -58,34 +133,59 @@ class GridBox {
 		return this.outLines[index];
 	}
 
-	public void layout(int height) {
-		assert height >= this.minHeight;
-		
-		// initialize output lines
-		String[] out = new String[this.height];
-		for (int i = 0; i < this.height; i++) {
-			out[i] = "";
-		}
+	public int height() {
+		return this.outLines.length;
+	}
+
+	public String[] layout() {
+		ArrayList<String> out = new ArrayList<String>();
 
 		// fill up each line with input lines
 		int iOut = 0;
 		for (String line : this.inLines) {
 			while ( ! line.equals("")) {
-				int remaining = width - out.get(iOut).size();
-				if (remaining <= line.size()) {
-					out[iOut] += line;
-					line = ""
+				if (out.size() <= iOut) { out.add(""); }
+				int remaining = this.scaledWidth - out.get(iOut).length();
+				if (remaining >= line.length()) {
+					out.set(iOut, out.get(iOut) + line);
+					line = "";
 				} else {
 					// put all we can in there and then move to the next line
-					out[iOut] += line.substring(0, remaining);
+					out.set(iOut, out.get(iOut) + line.substring(0, remaining));
 					line = line.substring(remaining);
-					iOut += 1;
 				}
+				iOut += 1;
+			}
+		}
+
+		this.unsizedOutLines = out.toArray(new String[out.size()]);
+		return this.unsizedOutLines;
+	}
+
+	public String[] layout(int height) {
+		String[] out = this.layout();
+
+		if (height < this.minHeight()) {
+			System.out.printf("height = %d, minHeight = %d", height, this.minHeight());
+			throw new RuntimeException("Layout failure");
+		}
+
+		// grow out array to correct size
+		out = Arrays.copyOf(out, height);
+
+		// change nulls to empty strings
+		for (int i = 0; i < out.length; i++) {
+			if (out[i] == null) {
+				out[i] = "";
 			}
 		}
 
 		// possibly shift down
-		if (out.length > 2) {
+		boolean anyLinesNonEmpty = false;
+		for (String line : out) {
+			if (!line.equals("")) anyLinesNonEmpty = true;
+		}
+		if (out.length > 2 && anyLinesNonEmpty) {
 			while (out[out.length-1].equals("") && out[out.length-2].equals("")) {
 				Collections.rotate(Arrays.asList(out), 1);
 			}
@@ -93,9 +193,15 @@ class GridBox {
 
 		// pad each line to the correct width
 		for (int i = 0; i < out.length; i++) {
-			out[i] = StringUtils.center(out[i], this.width, ' ');
+			out[i] = Utils.centerPad(out[i], this.scaledWidth, ' ');
 		}
 
 		this.outLines = out;
+		return out;
 	}
+
+	public int minHeight() {
+		return this.unsizedOutLines.length;
+	}
+
 }
