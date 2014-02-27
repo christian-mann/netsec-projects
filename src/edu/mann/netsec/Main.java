@@ -67,9 +67,9 @@ public class Main {
 				
 				output.println("#####################");
 				output.println();
+				
+				cPackets += 1;
 			}
-			
-			cPackets += 1;
 			
 			if (options.getInt("count") != null && cPackets >= options.getInt("count")) {
 				break;
