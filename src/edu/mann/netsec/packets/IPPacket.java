@@ -36,7 +36,7 @@ public class IPPacket extends Packet {
 
 	public Packet childPacket() {
 		if (this.payload.remaining() == 0) return null;
-		switch(this.protocol) {
+		else switch(this.protocol) {
 			case 1:
 				return new ICMPPacket(this.payload);
 			case 6:
@@ -108,7 +108,7 @@ public class IPPacket extends Packet {
 		gf.append(13, String.format("offset=%d", this.fragmentOffset));
 		gf.append(8, String.format("ttl=%d", this.timeToLive));
 		gf.append(8, String.format("proto=%d", this.protocol));
-		gf.append(16, String.format("checksum=0x%x ", this.headerChecksum & 0xFFFF) + (this.checksumValid() ? "(valid)" : "(invalid)"));
+		gf.append(16, String.format("checksum=0x%04X ", this.headerChecksum & 0xFFFF) + (this.checksumValid() ? "(valid)" : "(invalid)"));
 		gf.append(32, String.format("srcIP = %s", this.srcAddress.toString()));
 		gf.append(32, String.format("dstIP = %s", this.dstAddress.toString()));
 
@@ -119,17 +119,9 @@ public class IPPacket extends Packet {
 	}
 
 	private boolean checksumValid() {
-		int sum = 0;
 		ByteBuffer header = this.data.duplicate();
 		header.limit(this.ihl * 4);
 
-		do {
-			int s = header.getShort() & 0xFFFF;
-			sum += s;
-			// carry bit
-			sum = sum + (sum >> 16);
-			sum = sum & 0xFFFF;
-		} while (header.hasRemaining());
-		return sum == 0xFFFF;
+		return InternetChecksum.isValid(header);
 	}
 }

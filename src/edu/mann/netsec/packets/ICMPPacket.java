@@ -10,6 +10,8 @@ public class ICMPPacket extends Packet {
 	private byte type;
 	private byte code;
 	private short checksum;
+	private int otherHeader;
+	private ByteBuffer payload;
 
 	public ICMPPacket(ByteBuffer data) {
 		this.data = data.duplicate();
@@ -18,7 +20,8 @@ public class ICMPPacket extends Packet {
 	
 	@Override
 	public Packet childPacket() {
-		return null;
+		if (payload.remaining() > 0) return new RawPacket(payload.duplicate());
+		else return null;
 	}
 	
 	@Override
@@ -34,6 +37,9 @@ public class ICMPPacket extends Packet {
 		this.type = data.get();
 		this.code = data.get();
 		this.checksum = data.getShort();
+		this.otherHeader = data.getInt();
+		
+		this.payload = data.slice();
 	}
 
 	@Override
@@ -41,8 +47,13 @@ public class ICMPPacket extends Packet {
 		GridFormatter gf = new GridFormatter();
 		gf.append(8, "type="+this.type);
 		gf.append(8, "code="+this.code);
-		gf.append(16, "checksum valid");
+		gf.append(16, String.format("checksum=0x%04X", this.checksum) + (this.checksumValid() ? "(valid)" : "(invalid)"));
+		gf.append(32, String.format("otherHeader=0x%08X", this.otherHeader));
 		return gf.format(32);
+	}
+
+	private boolean checksumValid() {
+		return InternetChecksum.isValid(this.data);
 	}
 
 }
