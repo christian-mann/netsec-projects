@@ -15,5 +15,7 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="p1-netsec/adapter"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="lib/jnr-netdb-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/jnr-ffi-0.7.10.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
