@@ -40,7 +40,6 @@ public class UDPPacket extends Packet {
 		this.checksum = data.getShort() & 0xFFFF;
 
 		this.payload = data.slice();
-		// TODO check checksum value
 	}
 
 	public String prettyPrint() {
@@ -48,16 +47,7 @@ public class UDPPacket extends Packet {
 		gf.append(16, String.format("srcPort = %d", this.srcPort));
 		gf.append(16, String.format("dstPort = %d", this.dstPort));
 		gf.append(16, String.format("length = %d", this.length));
-		if (this.checksumValid()) {
-			gf.append(16, "chksum valid");
-		} else {
-			gf.append(16, "chksum invalid!");
-		}
+		gf.append(16, String.format("checksum=0x%x ", this.checksum & 0xFFFF));
 		return gf.format(32);
-	}
-
-
-	private boolean checksumValid() {
-		return true;
 	}
 }

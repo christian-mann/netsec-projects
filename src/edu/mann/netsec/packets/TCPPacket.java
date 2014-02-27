@@ -106,11 +106,7 @@ public class TCPPacket extends Packet {
 		gf.append(1, this.syn ? "SYN" : "   ");
 		gf.append(1, this.fin ? "FIN" : "   ");
 		gf.append(16, String.format("windowSize = %d", this.windowSize));
-		if(this.checksumValid()) {
-			gf.append(16, String.format("checksum valid"));
-		} else {
-			gf.append(16, String.format("checksum invalid"));
-		}
+		gf.append(16, String.format("checksum = 0x%X", this.checksum));
 		gf.append(16, String.format("urgent offset = %d", this.urgentPointer));
 		
 		//options
@@ -119,9 +115,5 @@ public class TCPPacket extends Packet {
 		}
 
 		return gf.format(32);
-	}
-	
-	private boolean checksumValid() {
-		return true;
 	}
 }

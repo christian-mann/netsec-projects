@@ -108,7 +108,7 @@ public class IPPacket extends Packet {
 		gf.append(13, String.format("offset=%d", this.fragmentOffset));
 		gf.append(8, String.format("ttl=%d", this.timeToLive));
 		gf.append(8, String.format("proto=%d", this.protocol));
-		gf.append(16, String.format("checksum=0x%x ", this.headerChecksum) + (this.checksumValid() ? "(valid)" : "(invalid)"));
+		gf.append(16, String.format("checksum=0x%x ", this.headerChecksum & 0xFFFF) + (this.checksumValid() ? "(valid)" : "(invalid)"));
 		gf.append(32, String.format("srcIP = %s", this.srcAddress.toString()));
 		gf.append(32, String.format("dstIP = %s", this.dstAddress.toString()));
 
