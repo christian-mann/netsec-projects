@@ -11,7 +11,6 @@ public class EthernetPacket extends Packet {
 	private MACAddress srcAddr;
 	private short type;
 	private ByteBuffer payload;
-	private int checksum;
 
 	public EthernetPacket(ByteBuffer raw) {
 		this.data = raw.duplicate();
@@ -48,9 +47,6 @@ public class EthernetPacket extends Packet {
 		this.type = data.getShort();
 
 		this.payload = data.slice();
-
-		// checksum
-		checksum = data.getInt(data.remaining() - 4);
 	}
 
 	public ByteBuffer payload() {
