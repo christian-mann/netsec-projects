@@ -1,6 +1,11 @@
 package edu.mann.netsec.utils;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.Arrays;
+
+import jnr.netdb.Service;
 
 public class Utils {
 
@@ -88,5 +93,17 @@ public class Utils {
 		return (byte) (
 				(Character.digit(hex.charAt(0), 16) << 4) + 
 				Character.digit(hex.charAt(1), 16));
+	}
+	
+	public static void eatNetDBWarning() {
+		PrintStream err = System.err;
+		System.setErr(new PrintStream(new OutputStream() {
+			@Override public void write(int b) throws IOException {}
+		}));
+		try {
+			Service.getServiceByPort(80, "tcp");
+		} finally {
+			System.setErr(err);
+		}
 	}
 }

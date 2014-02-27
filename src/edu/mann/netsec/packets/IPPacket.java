@@ -38,13 +38,13 @@ public class IPPacket extends Packet {
 		if (this.payload.remaining() == 0) return null;
 		else switch(this.protocol) {
 			case 1:
-				return new ICMPPacket(this.payload);
+				return new ICMPPacket(this.payload.duplicate());
 			case 6:
-				return new TCPPacket(this.payload);
+				return new TCPPacket(this.payload.duplicate());
 			case 17:
-				return new UDPPacket(this.payload);
+				return new UDPPacket(this.payload.duplicate());
 			default:
-				return new RawPacket(this.payload);
+				return new RawPacket(this.payload.duplicate());
 		}
 	}
 	

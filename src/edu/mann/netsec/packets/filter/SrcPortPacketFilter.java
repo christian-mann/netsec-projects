@@ -6,6 +6,12 @@ import edu.mann.netsec.packets.UDPPacket;
 
 public class SrcPortPacketFilter implements PacketFilter {
 
+	@Override
+	public String toString() {
+		return "SrcPortPacketFilter[" + lowPort + "-"
+				+ highPort + "]";
+	}
+
 	private Integer lowPort;
 	private Integer highPort;
 	

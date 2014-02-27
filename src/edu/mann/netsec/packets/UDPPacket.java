@@ -2,9 +2,16 @@ package edu.mann.netsec.packets;
 
 import java.nio.ByteBuffer;
 
+import jnr.netdb.Service;
+
 import edu.mann.netsec.utils.GridFormatter;
+import edu.mann.netsec.utils.Utils;
 
 public class UDPPacket extends Packet {
+	
+	static {
+		Utils.eatNetDBWarning();
+	}
 	private ByteBuffer data;
 	
 	public int srcPort;
@@ -44,10 +51,21 @@ public class UDPPacket extends Packet {
 
 	public String prettyPrint() {
 		GridFormatter gf = new GridFormatter();
-		gf.append(16, String.format("srcPort = %d", this.srcPort));
-		gf.append(16, String.format("dstPort = %d", this.dstPort));
+		
+		Service srcService = Service.getServiceByPort(this.srcPort, "udp");
+		Service dstService = Service.getServiceByPort(this.dstPort, "udp");
+		if (srcService != null) {
+			gf.append(16, String.format("srcPort = %d (%s)", this.srcPort, srcService.getName()));
+		} else {
+			gf.append(16, String.format("srcPort = %d", this.srcPort));
+		}
+		if (dstService != null) {
+			gf.append(16, String.format("dstPort = %d (%s)", this.dstPort, dstService.getName()));
+		} else {
+			gf.append(16, String.format("dstPort = %d", this.dstPort));
+		}
 		gf.append(16, String.format("length = %d", this.length));
-		gf.append(16, String.format("checksum=0x%x ", this.checksum & 0xFFFF));
+		gf.append(16, String.format("checksum=0x%04X ", this.checksum & 0xFFFF));
 		return gf.format(32);
 	}
 }

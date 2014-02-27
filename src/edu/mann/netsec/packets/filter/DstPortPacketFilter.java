@@ -6,6 +6,12 @@ import edu.mann.netsec.packets.UDPPacket;
 
 public class DstPortPacketFilter implements PacketFilter {
 
+	@Override
+	public String toString() {
+		return "DstPortPacketFilter[" + lowPort + "-"
+				+ highPort + "]";
+	}
+
 	private int lowPort;
 	private int highPort;
 	
@@ -33,7 +39,7 @@ public class DstPortPacketFilter implements PacketFilter {
 				}
 			} else if (p.getType() == "udp") {
 				if (p instanceof UDPPacket) {
-					int dstPort = ((TCPPacket)p).dstPort;
+					int dstPort = ((UDPPacket)p).dstPort;
 					if (this.lowPort <= dstPort && dstPort <= this.highPort) {
 						return true;
 					}

@@ -17,6 +17,11 @@ public class SrcAddressPacketFilter implements PacketFilter {
 	}
 
 	@Override
+	public String toString() {
+		return "SrcAddressPacketFilter[" + srcIP + "]";
+	}
+
+	@Override
 	public boolean allowPacket(Packet p) {
 		// look for the ip packet
 		while (p.getType() != "ip") {

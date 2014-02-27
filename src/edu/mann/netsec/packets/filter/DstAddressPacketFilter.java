@@ -6,6 +6,11 @@ import edu.mann.netsec.packets.Packet;
 
 public class DstAddressPacketFilter implements PacketFilter {
 
+	@Override
+	public String toString() {
+		return "DstAddressPacketFilter[" + dstIP + "]";
+	}
+
 	private IPAddress dstIP;
 
 	public DstAddressPacketFilter(String s) {

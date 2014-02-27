@@ -1,8 +1,15 @@
 package edu.mann.netsec.packets.filter;
 
+import java.util.Arrays;
+
 import edu.mann.netsec.packets.Packet;
 
 public class AndPacketFilter implements PacketFilter {
+
+	@Override
+	public String toString() {
+		return "AndPacketFilter[" + Arrays.toString(filters) + "]";
+	}
 
 	protected PacketFilter[] filters;
 	public AndPacketFilter(PacketFilter... ps) {

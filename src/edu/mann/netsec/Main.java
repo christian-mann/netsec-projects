@@ -28,8 +28,6 @@ import edu.mann.netsec.packets.filter.SrcPortPacketFilter;
 import edu.mann.netsec.packets.filter.TypePacketFilter;
 
 public class Main {
-
-	public static final String filename = "dat/http.dat";
 	
 	public static void main(String[] args) throws ArgumentParserException, IOException, ReflectiveOperationException {
 		Namespace options = parseArguments(args);
@@ -46,14 +44,18 @@ public class Main {
 		
 		// combine packet filters
 		List<PacketFilter> filters = new ArrayList<PacketFilter>();
-		filters.add((PacketFilter)options.get("type"));
 		filters.add((PacketFilter)options.get("src"));
 		filters.add((PacketFilter)options.get("dst"));
 		filters.add((PacketFilter)options.get("sord"));
 		filters.add((PacketFilter)options.get("sandd"));
 		filters.add((PacketFilter)options.get("sport"));
 		filters.add((PacketFilter)options.get("dport"));
+		// we will need this one special-cased later
+		PacketFilter typeFilter = (PacketFilter)options.get("type");
+		filters.add(typeFilter);
 		PacketFilter pf = new AndPacketFilter(filters.toArray(new PacketFilter[filters.size()]));
+		
+
 		
 		int cPackets = 0;
 		PrintStream output = (PrintStream)options.get("output");
@@ -61,7 +63,7 @@ public class Main {
 			Packet p = new EthernetPacket(bb);
 			if (pf.allowPacket(p)) {
 				do {
-					output.println(p.prettyPrint());
+					if (typeFilter == null || typeFilter.allowPacket(p) || (Boolean)options.get("header_only") == false) output.println(p.prettyPrint());
 					p = p.childPacket();
 				} while (p != null);
 				
@@ -118,7 +120,6 @@ public class Main {
 			.type(SorDPacketFilter.class)
 			.help("Print only packets where the source address matches saddress or the destination address matches daddress. Comma separated.");
 		ap.addArgument("--sandd")
-			.nargs(2)
 			.type(SandDPacketFilter.class)
 			.metavar("saddress,daddress")
 			.help("Print only packets where the source address matches saddress and the destination address matches daddress. Comma separated.");

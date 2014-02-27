@@ -4,10 +4,16 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import jnr.netdb.Protocol;
+import jnr.netdb.Service;
 import edu.mann.netsec.utils.GridFormatter;
 import edu.mann.netsec.utils.Utils;
 
 public class TCPPacket extends Packet {
+	
+	static {
+		Utils.eatNetDBWarning();
+	}
 	private ByteBuffer data;
 	
 	public int srcPort; /* unsigned short */
@@ -85,13 +91,22 @@ public class TCPPacket extends Packet {
 		}
 		
 		this.payload = data.slice();
-		// TODO check checksum value
 	}
 
 	public String prettyPrint() {
 		GridFormatter gf = new GridFormatter();
-		gf.append(16, String.format("srcPort = %d", this.srcPort));
-		gf.append(16, String.format("dstPort = %d", this.dstPort));
+		Service srcService = Service.getServiceByPort(this.srcPort, "tcp");
+		Service dstService = Service.getServiceByPort(this.dstPort, "tcp");
+		if (srcService != null) {
+			gf.append(16, String.format("srcPort = %d (%s)", this.srcPort, srcService.getName()));
+		} else {
+			gf.append(16, String.format("srcPort = %d", this.srcPort));
+		}
+		if (dstService != null) {
+			gf.append(16, String.format("dstPort = %d (%s)", this.dstPort, dstService.getName()));
+		} else {
+			gf.append(16, String.format("dstPort = %d", this.dstPort));
+		}
 		gf.append(32, String.format("seq = %d", this.seqNum));
 		gf.append(32, String.format("ack = %d", this.ackNum));
 		gf.append(4, String.format("Header\nLength:\n%d int", this.dataOffset));
