@@ -101,7 +101,7 @@ public class IPPacket extends Packet {
 		gf.append(4, String.format("ihl=%d", this.ihl));
 		gf.append(8, String.format("type=%d", this.typeOfService));
 		gf.append(16, String.format("length=%d", this.totalLength));
-		gf.append(16, String.format("identification=0x%x", this.identification));
+		gf.append(16, String.format("identification=0x%X", this.identification));
 		gf.append(1, this.reserved ? "  " : "   ");
 		gf.append(1, this.dontFragment ? "DF" : "  ");
 		gf.append(1, this.moreFragments ? "MF" : "  ");

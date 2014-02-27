@@ -1,6 +1,5 @@
 package edu.mann.netsec.packets;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -14,7 +13,6 @@ import java.util.List;
 public class PcapFilePacketSource extends FilePacketSource {
 
 	private File file;
-	private DataInputStream stream;
 	private List<ByteBuffer> packets;
 
 	public PcapFilePacketSource(String filename) throws IOException {
@@ -43,7 +41,6 @@ public class PcapFilePacketSource extends FilePacketSource {
 		new FileInputStream(file).read(fileData);
 		
 		ByteBuffer fileBuffer = ByteBuffer.wrap(fileData);
-		fileBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		
 		// read header
 		int magic_number = fileBuffer.getInt();
@@ -60,10 +57,6 @@ public class PcapFilePacketSource extends FilePacketSource {
 		int sigfigs = fileBuffer.getInt();
 		int snaplen = fileBuffer.getInt();
 		int network = fileBuffer.getInt();
-		
-//		if (network != 1) {
-//			throw new IllegalArgumentException("pcap file does not contain ethernet packets.");
-//		}
 		
 		while (fileBuffer.hasRemaining()) {
 			int ts_sec = fileBuffer.getInt();

@@ -61,9 +61,7 @@ public class Main {
 			Packet p = new EthernetPacket(bb);
 			if (pf.allowPacket(p)) {
 				do {
-					//if (options.get("type") == null || p.getType().equals(options.get("type"))) {
 					output.println(p.prettyPrint());
-					//}
 					p = p.childPacket();
 				} while (p != null);
 				
@@ -91,7 +89,6 @@ public class Main {
 		MutuallyExclusiveGroup groupPacketSource = ap.addMutuallyExclusiveGroup();
 		groupPacketSource.addArgument("-r", "--read-from")
 			.metavar("FILE")
-			//.setDefault(new FilePacketSource(filename))
 			.type(FilePacketSource.class)
 			.help("Read packets from FILE (reads from network by default).");
 		groupPacketSource.addArgument("-i", "--interface")
