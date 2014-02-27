@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -26,6 +25,15 @@ public class PcapFilePacketSource extends FilePacketSource {
 		this.file = file;
 		
 		parseFile(file);
+	}
+	
+	@Override
+	public String getFileName() {
+		if (this.file != null) {
+			return this.file.getAbsolutePath();
+		} else {
+			return "<no filename>";
+		}
 	}
 
 	private void parseFile(File file) throws FileNotFoundException, IOException {

@@ -25,6 +25,7 @@ import edu.mann.netsec.packets.filter.SandDPacketFilter;
 import edu.mann.netsec.packets.filter.SorDPacketFilter;
 import edu.mann.netsec.packets.filter.SrcAddressPacketFilter;
 import edu.mann.netsec.packets.filter.SrcPortPacketFilter;
+import edu.mann.netsec.packets.filter.TypePacketFilter;
 
 public class Main {
 
@@ -45,6 +46,7 @@ public class Main {
 		
 		// combine packet filters
 		List<PacketFilter> filters = new ArrayList<PacketFilter>();
+		filters.add((PacketFilter)options.get("type"));
 		filters.add((PacketFilter)options.get("src"));
 		filters.add((PacketFilter)options.get("dst"));
 		filters.add((PacketFilter)options.get("sord"));
@@ -59,9 +61,9 @@ public class Main {
 			Packet p = new EthernetPacket(bb);
 			if (pf.allowPacket(p)) {
 				do {
-					if (options.get("type") == null || p.getType().equals(options.get("type"))) {
-						output.println(p.prettyPrint());
-					}
+					//if (options.get("type") == null || p.getType().equals(options.get("type"))) {
+					output.println(p.prettyPrint());
+					//}
 					p = p.childPacket();
 				} while (p != null);
 				
@@ -101,7 +103,7 @@ public class Main {
 			.setDefault(System.out)
 			.help("Save output to FILE");
 		ap.addArgument("-t", "--type")
-			.choices("eth", "ip", "icmp", "tcp", "udp")
+			.type(TypePacketFilter.class)
 			.help("Print only packets of the specified type");
 		ap.addArgument("-h", "--header-only")
 			.action(Arguments.storeTrue())

@@ -19,7 +19,14 @@ public class EthernetPacket extends Packet {
 	}
 
 	public Packet childPacket() {
-		return new IPPacket(this.payload.duplicate());
+		switch (this.type) { 
+		case 0x0800:
+			return new IPPacket(this.payload.duplicate());
+		case 0x0806:
+			return new ARPPacket(this.payload.duplicate());
+		default:
+			return null;
+		}
 	}
 	
 	public ByteBuffer getData() {
@@ -52,6 +59,7 @@ public class EthernetPacket extends Packet {
 	
 	public String prettyPrint() {
 		GridFormatter gf = new GridFormatter();
+		gf.setCompressed(true);
 		gf.append(6*8, "dst = " + this.dstAddr.toString());
 		gf.append(6*8, "src = " + this.srcAddr.toString());
 		//gf.append(16, Short.toString(this.type));

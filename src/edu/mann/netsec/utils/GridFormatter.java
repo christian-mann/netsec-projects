@@ -9,8 +9,16 @@ import java.util.LinkedList;
 
 public class GridFormatter {
 	private ArrayList<GridBox> boxes;
-
 	private ArrayList<ArrayList<GridBox>> rows;
+	private boolean compressed = false;
+
+	public boolean isCompressed() {
+		return compressed;
+	}
+
+	public void setCompressed(boolean compressed) {
+		this.compressed = compressed;
+	}
 
 	public GridFormatter() {
 		this.boxes = new ArrayList<GridBox>();
@@ -18,7 +26,7 @@ public class GridFormatter {
 	}
 
 	public void append(int windowSize, String s) {
-		this.boxes.add(new GridBox(windowSize, s));
+		this.boxes.add(new GridBox(windowSize, s, this.compressed));
 	}
 
 	public String format(int width) {
@@ -26,7 +34,7 @@ public class GridFormatter {
 		StringBuilder sb = new StringBuilder();
 		// top row is 0...1...2..3. etc
 		for(int i = 0; i < width; i++) {
-			sb.append(' ');
+			if (!this.compressed) sb.append(' ');
 			if(i % 10 == 0) {
 				sb.append(i / 10);
 			} else {
@@ -38,7 +46,7 @@ public class GridFormatter {
 
 		// second row is 012345...
 		for(int i = 0; i < width; i++) {
-			sb.append(' ');
+			if (!this.compressed) sb.append(' ');
 			sb.append(i % 10);
 		}
 		sb.append(' ');
@@ -53,7 +61,7 @@ public class GridFormatter {
 				sb.append('|');
 				for (GridBox box : row) {
 					sb.append(box.getRow(r));
-					sb.append('|');
+					if (!this.compressed || box.bits > 1) sb.append('|');
 				}
 				sb.append('\n');
 			}
@@ -67,8 +75,13 @@ public class GridFormatter {
 		StringBuilder sb = new StringBuilder();
 
 		for(int i = 0; i < width; i++) {
-			sb.append('+');
-			sb.append('-');
+			if (this.compressed) {
+				if (i == 0) sb.append('+');
+				else sb.append('-');
+			} else {
+				sb.append('+');
+				sb.append('-');
+			}
 		}
 		sb.append('+');
 		sb.append('\n');
@@ -85,11 +98,11 @@ public class GridFormatter {
 			// we need to work out how tall this row should be
 			ArrayList<GridBox> row = new ArrayList<GridBox>();
 			int curWidth = 0;
-			int minHeight = 0;
+			int minHeight = 1;
 
 			do {
 				GridBox box = boxes.pop();
-				curWidth += box.width;
+				curWidth += box.bits;
 				minHeight = Math.max(minHeight, box.minHeight());
 				row.add(box);
 			} while (curWidth < width);
@@ -116,11 +129,15 @@ class GridBox {
 	private String[] inLines;
 	private String[] unsizedOutLines;
 	private String[] outLines;
-	private int scaledWidth;
+	public int bits;
 	
-	public GridBox(int width, String s) {
-		this.width = width;
-		this.scaledWidth = width * 2 - 1; // two characters per bit, but one character for border
+	public GridBox(int bits, String s) {
+		this(bits, s, false);
+	}
+	
+	public GridBox(int bits, String s, boolean compressed) {
+		this.bits = bits;
+		this.width = compressed ? Math.max(1, bits-1) : 2*bits-1;
 		this.s = s;
 
 		this.inLines = s.split("\n");
@@ -145,7 +162,7 @@ class GridBox {
 		for (String line : this.inLines) {
 			while ( ! line.equals("")) {
 				if (out.size() <= iOut) { out.add(""); }
-				int remaining = this.scaledWidth - out.get(iOut).length();
+				int remaining = this.width - out.get(iOut).length();
 				if (remaining >= line.length()) {
 					out.set(iOut, out.get(iOut) + line);
 					line = "";
@@ -193,7 +210,7 @@ class GridBox {
 
 		// pad each line to the correct width
 		for (int i = 0; i < out.length; i++) {
-			out[i] = Utils.centerPad(out[i], this.scaledWidth, ' ');
+			out[i] = Utils.centerPad(out[i], this.width, ' ');
 		}
 
 		this.outLines = out;

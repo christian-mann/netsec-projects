@@ -67,7 +67,7 @@ public class FilePacketSource implements PacketSource {
 		return "\"" + this.getFileName() + "\"";
 	}
 	
-	private String getFileName() {
+	protected String getFileName() {
 		if (this.f != null) {
 			return this.f.getAbsolutePath();
 		} else {

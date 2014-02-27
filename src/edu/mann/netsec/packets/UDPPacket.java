@@ -10,7 +10,7 @@ public class UDPPacket extends Packet {
 	public int srcPort;
 	public int dstPort;
 	private int length; // in bytes
-	private short checksum;
+	private int checksum;
 	private ByteBuffer payload;
 
 	public UDPPacket(ByteBuffer data) {
@@ -20,7 +20,8 @@ public class UDPPacket extends Packet {
 	
 	@Override
 	public Packet childPacket() {
-		return null;
+		if (this.payload.remaining() == 0) return null;
+		else return new RawPacket(this.payload.duplicate());
 	}
 	
 	public ByteBuffer getData() {
@@ -33,10 +34,10 @@ public class UDPPacket extends Packet {
 	}
 	
 	public void parseData(ByteBuffer data) {
-		this.srcPort = data.getShort();
-		this.dstPort = data.getShort();
-		this.length = data.getShort();
-		this.checksum = data.getShort();
+		this.srcPort = data.getShort() & 0xFFFF;
+		this.dstPort = data.getShort() & 0xFFFF;
+		this.length = data.getShort() & 0xFFFF;
+		this.checksum = data.getShort() & 0xFFFF;
 
 		this.payload = data.slice();
 		// TODO check checksum value

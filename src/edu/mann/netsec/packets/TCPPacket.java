@@ -36,8 +36,9 @@ public class TCPPacket extends Packet {
 		this.parseData(data);
 	}
 
-	public TCPPacket childPacket() {
-		return null;
+	public Packet childPacket() {
+		if (this.payload.remaining() == 0) return null;
+		else return new RawPacket(this.data.duplicate());
 	}
 	
 	public ByteBuffer getData() {

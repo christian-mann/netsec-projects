@@ -35,15 +35,16 @@ public class IPPacket extends Packet {
 	}
 
 	public Packet childPacket() {
+		if (this.payload.remaining() == 0) return null;
 		switch(this.protocol) {
 			case 1:
 				return new ICMPPacket(this.payload);
 			case 6:
 				return new TCPPacket(this.payload);
-			case 7:
+			case 17:
 				return new UDPPacket(this.payload);
 			default:
-				return null;
+				return new RawPacket(this.payload);
 		}
 	}
 	
