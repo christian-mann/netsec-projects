@@ -1,6 +1,8 @@
 package edu.mann.netsec.packets;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import edu.mann.netsec.utils.GridFormatter;
 import edu.mann.netsec.utils.Utils;
@@ -26,6 +28,8 @@ public class TCPPacket extends Packet {
 	private int checksum; /* unsigned short */
 	private int urgentPointer; /* unsigned short */
 	private ByteBuffer payload;
+
+	private List<TCPOption> options;
 
 	public TCPPacket(ByteBuffer data) {
 		this.data = data.duplicate();
@@ -70,7 +74,15 @@ public class TCPPacket extends Packet {
 		this.checksum = data.getShort() & 0xffff;
 		this.urgentPointer = data.getShort() & 0xffff;
 
-		// TODO options/padding
+		this.options = new ArrayList<TCPOption>();
+		// at this point we've consumed 20 bytes of the header
+		for (int bytesConsumed = 20; bytesConsumed < this.dataOffset*4; bytesConsumed += 4) {
+			// TODO these are not real options
+			byte optionData[] = new byte[4];
+			data.get(optionData);
+			this.options.add(new TCPOption(optionData));
+		}
+		
 		this.payload = data.slice();
 		// TODO check checksum value
 	}
@@ -81,7 +93,7 @@ public class TCPPacket extends Packet {
 		gf.append(16, String.format("dstPort = %d", this.dstPort));
 		gf.append(32, String.format("seq = %d", this.seqNum));
 		gf.append(32, String.format("ack = %d", this.ackNum));
-		gf.append(4, String.format("Data\nOffset:\n%d", this.dataOffset));
+		gf.append(4, String.format("Header\nLength:\n%d int", this.dataOffset));
 		gf.append(3, String.format("")); // reserved
 		gf.append(1, this.ns ? "NS" : "  ");
 		gf.append(1, this.cwr ? "CWR" : "   ");
@@ -99,6 +111,11 @@ public class TCPPacket extends Packet {
 			gf.append(16, String.format("checksum invalid"));
 		}
 		gf.append(16, String.format("urgent offset = %d", this.urgentPointer));
+		
+		//options
+		for (TCPOption op : this.options) {
+			gf.append(32, op.toString());
+		}
 
 		return gf.format(32);
 	}

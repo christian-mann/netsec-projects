@@ -64,10 +64,10 @@ public class Main {
 					}
 					p = p.childPacket();
 				} while (p != null);
+				
+				output.println("#####################");
+				output.println();
 			}
-			
-			output.println("#####################");
-			output.println();
 			
 			cPackets += 1;
 			
@@ -125,12 +125,10 @@ public class Main {
 			.help("Print only packets where the source address matches saddress and the destination address matches daddress. Comma separated.");
 		ap.addArgument("--sport")
 			.type(SrcPortPacketFilter.class)
-			.setDefault(new SrcPortPacketFilter(0, 65535))
 			.metavar("port1-port2")
 			.help("Print only packets where the source port is in the range [port1, port2]. Hyphen separated.");
 		ap.addArgument("--dport")
 			.type(DstPortPacketFilter.class)
-			.setDefault(new DstPortPacketFilter(0, 65535))
 			.metavar("port1-port2")
 			.help("Print only packets where the destination port is in the range [port1, port2]. Hyphen separated.");
 		
