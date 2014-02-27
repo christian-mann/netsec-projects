@@ -30,7 +30,7 @@ public class Main {
 
 	public static final String filename = "dat/http.dat";
 	
-	public static void main(String[] args) throws ArgumentParserException, IOException {
+	public static void main(String[] args) throws ArgumentParserException, IOException, ReflectiveOperationException {
 		Namespace options = parseArguments(args);
 		System.out.println(options);
 		

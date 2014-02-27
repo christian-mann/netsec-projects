@@ -5,28 +5,24 @@ import java.util.Iterator;
 import java.util.Scanner;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-import edu.papa.networks.SimplePacketDriver;
+import edu.papa.SPDDriver;
 
 public class NetworkPacketSource implements PacketSource {
 	
-	static {
-		System.loadLibrary("SimplePacketDriver");
-	}
+	private SPDDriver driver;
 	
-	private SimplePacketDriver driver;
-	
-	public NetworkPacketSource(String string) {
+	public NetworkPacketSource(String string) throws ReflectiveOperationException {
 		
-		this.driver = new SimplePacketDriver();
+		this.driver = new SPDDriver();
 		driver.openAdapter(string);
 	}
 	
-	public NetworkPacketSource(SimplePacketDriver driver) {
+	public NetworkPacketSource(SPDDriver driver) {
 		this.driver = driver;
 	}
 	
-	public static NetworkPacketSource fromPrompt() {
-        SimplePacketDriver driver = new SimplePacketDriver();
+	public static NetworkPacketSource fromPrompt() throws ReflectiveOperationException {
+        SPDDriver driver = new SPDDriver();
         
         //Get adapter names and print info
         String[] adapters=driver.getAdapterNames();
@@ -56,7 +52,12 @@ public class NetworkPacketSource implements PacketSource {
 
 			@Override
 			public ByteBuffer next() {
-				return ByteBuffer.wrap(driver.readPacket());
+				try {
+					return ByteBuffer.wrap(driver.readPacket());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return null;
 			}
 
 			@Override
