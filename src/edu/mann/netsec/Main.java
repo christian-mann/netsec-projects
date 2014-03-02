@@ -32,7 +32,6 @@ public class Main {
 	
 	public static void main(String[] args) throws ArgumentParserException, IOException, ReflectiveOperationException {
 		Namespace options = parseArguments(args);
-		System.out.println(options);
 		
 		PacketSource ps;
 		if (options.get("read_from") != null) {
