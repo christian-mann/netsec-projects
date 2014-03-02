@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import jnr.netdb.Protocol;
 import jnr.netdb.Service;
 import edu.mann.netsec.utils.GridFormatter;
 import edu.mann.netsec.utils.Utils;

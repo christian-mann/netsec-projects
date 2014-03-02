@@ -17,6 +17,7 @@ import edu.mann.netsec.packets.FilePacketSource;
 import edu.mann.netsec.packets.NetworkPacketSource;
 import edu.mann.netsec.packets.Packet;
 import edu.mann.netsec.packets.PacketSource;
+import edu.mann.netsec.packets.RawPacket;
 import edu.mann.netsec.packets.filter.AndPacketFilter;
 import edu.mann.netsec.packets.filter.DstAddressPacketFilter;
 import edu.mann.netsec.packets.filter.DstPortPacketFilter;
@@ -31,7 +32,6 @@ public class Main {
 	
 	public static void main(String[] args) throws ArgumentParserException, IOException, ReflectiveOperationException {
 		Namespace options = parseArguments(args);
-		System.out.println(options);
 		
 		PacketSource ps;
 		if (options.get("read_from") != null) {
@@ -55,22 +55,34 @@ public class Main {
 		filters.add(typeFilter);
 		PacketFilter pf = new AndPacketFilter(filters.toArray(new PacketFilter[filters.size()]));
 		
-
 		
 		int cPackets = 0;
 		PrintStream output = (PrintStream)options.get("output");
 		for (ByteBuffer bb : ps) {
 			Packet p = new EthernetPacket(bb);
+			Packet subPacket = p;
 			if (pf.allowPacket(p)) {
-				do {
-					if (typeFilter == null || typeFilter.allowPacket(p) || (Boolean)options.get("header_only") == false) output.println(p.prettyPrint());
-					p = p.childPacket();
-				} while (p != null);
 				
-				output.println("#####################");
-				output.println();
+				// log packet to potential output
+				if (output != null) {
+					output.println(new RawPacket(p.getData()).prettyPrint(false));
+				}
+				
+				do {
+					if (typeFilter == null 
+							|| typeFilter.allowPacket(subPacket) 
+							|| (Boolean)options.get("header_only") == false
+							) {
+						System.out.println(subPacket.prettyPrint());
+					}
+					subPacket = subPacket.childPacket();
+				} while (subPacket != null);
+				
+				System.out.println("#####################");
+				System.out.println();
 				
 				cPackets += 1;
+				
 			}
 			
 			if (options.getInt("count") != null && cPackets >= options.getInt("count")) {
@@ -99,7 +111,6 @@ public class Main {
 		ap.addArgument("-o", "--output")
 			.metavar("FILE")
 			.type(PrintStream.class)
-			.setDefault(System.out)
 			.help("Save output to FILE");
 		ap.addArgument("-t", "--type")
 			.type(TypePacketFilter.class)
