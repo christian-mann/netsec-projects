@@ -32,8 +32,7 @@ public class RawPacket extends Packet {
 		// nothing!
 	}
 
-	@Override
-	public String prettyPrint() {
+	public String prettyPrint(boolean printSummary) {
 		// this is supposed to look like hexdump, etc
 		StringBuilder sb = new StringBuilder();
 		
@@ -42,17 +41,19 @@ public class RawPacket extends Packet {
 			// byte data first
 			byte b = data.get();
 			row.add(b);
-			sb.append(String.format("%02X ", b));
-			if (i % 8 == 7) {
+			sb.append(String.format("%02x ", b));
+			if (i % 8 == 7 && printSummary) {
 				sb.append(" ");
 			}
 			if (i % 16 == 15) {
-				for (byte bt : row) {
-					char c = (char)(bt & 0xFF);
-					if (' ' <= c && c <= '~')
-						sb.append(c);
-					else
-						sb.append('.');
+				if (printSummary) {
+					for (byte bt : row) {
+						char c = (char)(bt & 0xFF);
+						if (' ' <= c && c <= '~')
+							sb.append(c);
+						else
+							sb.append('.');
+					}
 				}
 				row.clear();
 				sb.append("\n");
@@ -62,22 +63,30 @@ public class RawPacket extends Packet {
 		// fix the last row
 		if (!row.isEmpty()) {
 			int printed = row.size() * 3 + (row.size() >= 8 ? 1 : 0);
-			for (int i = 0; i < 50 - printed; i++) {
-				sb.append(" ");
-			}
+			if (printSummary)
+				for (int i = 0; i < 50 - printed; i++) {
+					sb.append(" ");
+				}
 			
-			for (byte bt : row) {
-				char c = (char)(bt & 0xFF);
-				if (' ' <= c && c <= '~')
-					sb.append(c);
-				else
-					sb.append('.');
+			if (printSummary) {
+				for (byte bt : row) {
+					char c = (char)(bt & 0xFF);
+					if (' ' <= c && c <= '~')
+						sb.append(c);
+					else
+						sb.append('.');
+				}
 			}
 			row.clear();
 			sb.append("\n");
 		}
 		
 		return sb.toString();
+	}
+	
+	@Override
+	public String prettyPrint() {
+		return this.prettyPrint(true);
 	}
 
 }
