@@ -8,6 +8,10 @@ March 3 2014
 Design
 ======
 
+Capturing
+---------
+To work with raw packets, the instructor created a JNI wrapper to libpcap and libnet (named ``SimplePacketDriver``) that I used to interface almost directly with the network card. Unfortunately, the class was in the default package, and Java does not allow imports from a package to the default package. The only way to solve this issue was reflection, so that is what I used. I wrapped any calls I needed in another class, called ``SPDDriver``, which proxies the majority of its calls to an instance of ``SimplePacketDriver`` via reflection. In this way all of the ugliness is hidden in one corner, just as it should be.
+
 Dissecting
 ----------
 
