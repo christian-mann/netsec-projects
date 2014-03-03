@@ -33,6 +33,8 @@ Perhaps more usefully, it is also able to read packet data from ``.pcap`` files.
 
 As for output to a file, that is only performed in the format given by the data files. There may be errant spaces in the output that were not present in the input.
 
+When the program is running in generator mode, it only outputs to the screen the size of the packets written.
+
 Printing
 --------
 I was not content with simplicity for this section; I wanted to make it easy to add new dissectors to support new packet types in the future. Thus I worked to implement the tabular output formatting of headers that was specified in the project assignment in a general way.
