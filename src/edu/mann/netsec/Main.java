@@ -2,6 +2,7 @@ package edu.mann.netsec;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ public class Main {
 	
 	public static void main(String[] args) throws ArgumentParserException, IOException, ReflectiveOperationException {
 		Namespace options = parseArguments(args);
+		if (options == null) System.exit(4);
 		
 		PacketSource ps;
 		if (options.get("read_from") != null) {
@@ -98,7 +100,7 @@ public class Main {
 		ap.addArgument("-c", "--count")
 			.metavar("COUNT")
 			.type(Integer.class)
-			.help("Exit after reading COUNT packets.");
+			.help("Exit after printing COUNT packets.");
 		
 		MutuallyExclusiveGroup groupPacketSource = ap.addMutuallyExclusiveGroup();
 		groupPacketSource.addArgument("-r", "--read-from")
@@ -143,8 +145,15 @@ public class Main {
 			.metavar("port1-port2")
 			.help("Print only packets where the destination port is in the range [port1, port2]. Hyphen separated.");
 		
-		Namespace options = ap.parseArgs(args);
-		return options;
+		try {
+			Namespace options = ap.parseArgs(args);
+			return options;
+		} catch (ArgumentParserException e) {
+			ap.printHelp(new PrintWriter(System.err, true));
+			System.exit(5);
+		}
+		
+		return null;
 	}
 
 }

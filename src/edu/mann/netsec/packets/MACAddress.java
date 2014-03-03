@@ -1,5 +1,7 @@
 package edu.mann.netsec.packets;
 
+import java.util.Arrays;
+
 public class MACAddress extends Address {
 
 	private byte[] addr;
@@ -18,5 +20,9 @@ public class MACAddress extends Address {
 			sb.append(String.format("%02X", addr[i]));
 		}
 		return sb.toString();
+	}
+	
+	public boolean equals(MACAddress other) {
+		return Arrays.equals(this.addr, other.addr);
 	}
 }

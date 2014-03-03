@@ -30,7 +30,7 @@ public class SrcAddressPacketFilter implements PacketFilter {
 		}
 		if (p instanceof IPPacket) {
 			IPPacket ipp = (IPPacket)p;
-			if (ipp.srcAddress == this.srcIP) {
+			if (ipp.srcAddress.equals(this.srcIP)) {
 				return true;
 			} else {
 				return false;

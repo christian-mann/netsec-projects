@@ -30,7 +30,7 @@ public class DstAddressPacketFilter implements PacketFilter {
 		}
 		if (p instanceof IPPacket) {
 			IPPacket ipp = (IPPacket)p;
-			if (ipp.dstAddress == this.dstIP) {
+			if (ipp.dstAddress.equals(this.dstIP)) {
 				return true;
 			} else {
 				return false;

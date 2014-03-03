@@ -1,5 +1,7 @@
 package edu.mann.netsec.packets;
 
+import java.util.Arrays;
+
 public class IPAddress extends Address {
 
 	private byte[] addr;
@@ -30,5 +32,9 @@ public class IPAddress extends Address {
 			sb.append(String.format("%d", (int)(this.addr[i] & 0xFF)));
 		}
 		return sb.toString();
+	}
+	
+	public boolean equals(IPAddress other) {
+		return Arrays.equals(this.addr, other.addr);
 	}
 }
