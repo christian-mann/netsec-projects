@@ -24,7 +24,10 @@ public class EthernetPacket extends Packet {
 		case 0x0806:
 			return new ARPPacket(this.payload.duplicate());
 		default:
-			return null;
+			if (this.payload.remaining() > 0)
+				return new RawPacket(this.payload.duplicate());
+			else
+				return null;
 		}
 	}
 	
