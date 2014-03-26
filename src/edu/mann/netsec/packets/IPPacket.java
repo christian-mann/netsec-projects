@@ -2,8 +2,10 @@ package edu.mann.netsec.packets;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import edu.mann.netsec.Main;
 import edu.mann.netsec.utils.GridFormatter;
 import edu.mann.netsec.utils.Utils;
 
@@ -13,20 +15,24 @@ public class IPPacket extends Packet {
 	private int version;
 	private int ihl; // num of 32-bit words forming the header
 	private int typeOfService;
-	private int totalLength; // in bytes
-	private int identification;
+	int totalLength; // in bytes
+	int identification;
 	private boolean reserved;
 	private boolean dontFragment;
-	private boolean moreFragments;
-	private int fragmentOffset;
+	boolean moreFragments;
+	int fragmentOffset;
 	private int timeToLive;
-	private int protocol;
+	int protocol;
 	private int headerChecksum;
 	public IPAddress srcAddress; // need public for packet filter
 	public IPAddress dstAddress; // need public for packet filter
 	private ByteBuffer payload;
 
 	private List<IPOption> options;
+
+	public Collection<IPPacket> fragments;
+
+	public int sid;
 
 
 	public IPPacket(ByteBuffer data) {
@@ -66,6 +72,7 @@ public class IPPacket extends Packet {
 
 		this.typeOfService = data.get();
 		this.totalLength = data.getShort() & 0xFFFF;
+		// use total length to limit buffer
 		this.identification = data.getShort() & 0xFFFF;
 		
 		b = data.get();
@@ -74,7 +81,7 @@ public class IPPacket extends Packet {
 		this.moreFragments = Utils.intFromBits(b, 2, 3) == 1;
 
 		byte c = data.get();
-		this.fragmentOffset = Utils.intFromBits(new byte[]{b, c}, 3, 16);
+		this.fragmentOffset = Utils.intFromBits(new byte[]{b, c}, 3, 16) * 8;
 
 		this.timeToLive = data.get();
 		this.protocol = data.get();
@@ -91,6 +98,9 @@ public class IPPacket extends Packet {
 			data.get(optionData);
 			this.options.add(new IPOption(optionData));
 		}
+		
+		int payloadLength = (this.totalLength - this.ihl * 4);
+		data.limit(data.position() + payloadLength);
 
 		this.payload = data.slice();
 	}
@@ -108,14 +118,30 @@ public class IPPacket extends Packet {
 		gf.append(13, String.format("offset=%d", this.fragmentOffset));
 		gf.append(8, String.format("ttl=%d", this.timeToLive));
 		gf.append(8, String.format("proto=%d", this.protocol));
-		gf.append(16, String.format("checksum=0x%04X ", this.headerChecksum & 0xFFFF) + (this.checksumValid() ? "(valid)" : "(invalid)"));
+		if (this.fragments == null || this.fragments.isEmpty()) {
+			gf.append(16, String.format("checksum=0x%04X ", this.headerChecksum & 0xFFFF) + (this.checksumValid() ? "(valid)" : "(invalid)"));
+		} else {
+			gf.append(16, String.format("checksum=<reassembled>"));
+		}
 		gf.append(32, String.format("srcIP = %s", this.srcAddress.toString()));
 		gf.append(32, String.format("dstIP = %s", this.dstAddress.toString()));
 
 		for (IPOption op : this.options) {
 			gf.append(32, op.toString());
 		}
-		return gf.format(32);
+		
+		StringBuilder fragBuilder = new StringBuilder();
+		if (this.fragments != null && !this.fragments.isEmpty()) {
+			for (IPPacket f : this.fragments) {
+				fragBuilder.append(f.prettyPrint());
+				fragBuilder.append("\n");
+			}
+		}
+		if (this.isFragment()) {
+			return "IP Fragment:\n" + gf.format(32) + (new RawPacket(this.payload.duplicate()).prettyPrint());
+		} else {
+			return gf.format(32) + fragBuilder.toString();	
+		}
 	}
 
 	private boolean checksumValid() {
@@ -123,5 +149,17 @@ public class IPPacket extends Packet {
 		header.limit(this.ihl * 4);
 
 		return InternetChecksum.isValid(header);
+	}
+	
+	public boolean isFragment() {
+		return (this.moreFragments || this.fragmentOffset > 0);
+	}
+
+	public ByteBuffer getPayload() {
+		return this.payload.duplicate();
+	}
+
+	public int headerLength() {
+		return this.ihl * 4;
 	}
 }

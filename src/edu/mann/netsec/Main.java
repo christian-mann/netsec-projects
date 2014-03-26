@@ -31,9 +31,13 @@ import edu.mann.netsec.packets.filter.TypePacketFilter;
 
 public class Main {
 	
+	public static boolean debug = false;
+
 	public static void main(String[] args) throws ArgumentParserException, IOException, ReflectiveOperationException {
 		Namespace options = parseArguments(args);
 		if (options == null) System.exit(4);
+		
+		Main.debug = options.getBoolean("debug");
 		
 		PacketSource ps;
 		if (options.get("read_from") != null) {
@@ -97,6 +101,9 @@ public class Main {
 	private static Namespace parseArguments(String[] args)
 			throws ArgumentParserException, IOException {
 		ArgumentParserImpl ap = (ArgumentParserImpl)ArgumentParsers.newArgumentParser("", false);
+		ap.addArgument("-g", "--debug")
+			.action(Arguments.storeTrue())
+			.help("Enable debug output.");
 		ap.addArgument("-c", "--count")
 			.metavar("COUNT")
 			.type(Integer.class)

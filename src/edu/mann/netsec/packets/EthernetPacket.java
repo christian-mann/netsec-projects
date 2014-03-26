@@ -20,7 +20,9 @@ public class EthernetPacket extends Packet {
 	public Packet childPacket() {
 		switch (this.type) { 
 		case 0x0800:
-			return new IPPacket(this.payload.duplicate());
+			IPPacket p = new IPPacket(this.payload.duplicate());
+			IPQueue.addFragment(p);
+			return IPQueue.getPacket();
 		case 0x0806:
 			return new ARPPacket(this.payload.duplicate());
 		default:

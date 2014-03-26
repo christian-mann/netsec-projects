@@ -1,8 +1,16 @@
 package edu.mann.netsec.packets;
 
 import java.nio.ByteBuffer;
+import java.util.Date;
 
 public abstract class Packet {
+	
+	private Date timestamp;
+	
+	public Packet() {
+		this.setTimestamp(new Date());
+	}
+	
 	public abstract Packet childPacket();
 
 	public abstract ByteBuffer getData();
@@ -26,5 +34,13 @@ public abstract class Packet {
 			i += 1;
 		}
 		return sb.toString();
+	}
+
+	public Date getTimestamp() {
+		return timestamp;
+	}
+
+	public void setTimestamp(Date timestamp) {
+		this.timestamp = timestamp;
 	}
 }
