@@ -25,6 +25,17 @@ In this way one could conceivably carry such unusual configurations as UDP over 
 
 Lastly, one packet type is implemented for representing raw data, such as telnet data. There is a ``RawPacket`` class that serves as a catch-all and a default value when no other dissector is registered.
 
+IP Reassembly
+-------------
+
+When a network's Maximum Transmission Unit (MTU) is smaller than the size of a packet, the network layer (IP) *fragments* the packet into smaller subpackets, each fitting within the network MTU. There are three fields in the IP protocol to accomplish this: One ``identification`` field, that serves to correlate related packets; one ``fragmentOffset`` field, that denotes where in the overall packet this subpacket should be placed; and one ``moreFragments`` field, that denotes whether this is the last fragment for the packet. Therefore if either the ``moreFragments`` bit is set or the ``fragmentOffset`` field is greater than zero, the packet is actually a fragment.
+
+This packet capture tool uses the above method to determine whether a given packet is a fragment. If it discovers one (see ``EthernetPacket#childPacket()``), then it registers it with the packet reassembly facility and then checks whether any fully-assembled packets are ready.
+
+In order to assemble packets, a new ``IPFragmentQueue`` is instantiated for each new (``srcIP``, ``dstIP``, ``identification``, ``protocol``) tuple seen (see ``IPQueue#matches(IPPacket)``). When a packet is seen that matches an existing queue, it adds it to the queue. Once the final packet has been seen (by the above metric), the queue is marked as *determined*. When a queue receives a request to reassemble its packet, it starts by checking whether it has seen its final packet, and then checks whether there are any unresolved gaps between packets. If both of these conditions are false, then it allocates space according to ``packetSize = finalPacket.totalSize + finalPacket.fragmentOffset``. If this is greater than ``65535``, the maximum IP packet size, then it enters an error case according to the given specification. Otherwise, it reassembles the packet by copying the fragments into the allocated buffer in order of receipt. This matches Linux semantics; this could be changed to be reversed to match Windows semantics. After copying these fragments, it constructs a new IP packet from the reassembled datagram and passes it to the higher level, whether that's TCP, UDP or just ``RawPacket``.
+
+In order to prevent Jolt attacks, each packet has a timestamp associated with it. In the event that a packet takes too long to fully arrive at the host, it can be aborted, in order to preserve resources. However, if this timeout does not exactly match the host's timeout, the IDS could fall prey to an IDS evasion attack whereby the packets that the IDS sees are not the exact packets that the host sees. To this end, each IP packet is tagged with a field denoting whether it has been reassembled, and whether the packets overlapped. In the future this could be expanded to also include a field marking when time ran out on reassembly.
+
 File I/O
 --------
 The program is able to read packets from the data files given to us by the instructor, but only in the exact format given -- errant spaces will often break its parsing.
