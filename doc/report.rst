@@ -1,9 +1,9 @@
 ============================
-Network Security - Project 1
+Network Security - Project 2
 ============================
 
 Christian Mann
-March 3 2014
+March 26 2014
 
 Design
 ======
