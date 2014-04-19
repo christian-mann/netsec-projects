@@ -2,7 +2,7 @@ package edu.mann.netsec.packets;
 
 import java.util.ArrayList;
 
-public abstract class FragmentQueue<T> {
+public abstract class FragmentQueue<T extends Packet> {
 	private ArrayList<PacketHandler<T>> handlers;
 
 	public abstract void addFragment(Fragment<T> f);

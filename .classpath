@@ -11,5 +11,6 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/jnr-netdb-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/jnr-ffi-0.7.10.jar"/>
+	<classpathentry kind="lib" path="lib/javatuples-1.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
