@@ -51,7 +51,7 @@ public class SnortRule implements PacketHandler<Packet> {
 		if (tokens[4].equals("->")) {
 			bidirectional = false;
 		} else if (tokens[4].equals("<>")) {
-			bidirectional = false;
+			bidirectional = true;
 		} else {
 			throw new SnortInvalidRuleException("Did not understand rule: " + s);
 		}
@@ -59,9 +59,9 @@ public class SnortRule implements PacketHandler<Packet> {
 		// construct filters... oh boy
 		List<PacketFilter> filters = new ArrayList<PacketFilter>();
 		filters.add(new TypePacketFilter(tokens[1]));
-		filters.add(new SrcAddressPacketFilter(new IPAddress(tokens[2])));
+		filters.add(new SrcAddressPacketFilter(tokens[2]));
 		filters.add(new SrcPortPacketFilter(tokens[3]));
-		filters.add(new DstAddressPacketFilter(new IPAddress(tokens[5])));
+		filters.add(new DstAddressPacketFilter(tokens[5]));
 		filters.add(new DstPortPacketFilter(tokens[6]));
 		PacketFilter forwardTCPFilter = new AndPacketFilter(filters.toArray(new PacketFilter[filters.size()]));
 		
@@ -70,9 +70,9 @@ public class SnortRule implements PacketHandler<Packet> {
 		if (bidirectional) {
 			filters = new ArrayList<PacketFilter>();
 			filters.add(new TypePacketFilter(tokens[1]));
-			filters.add(new DstAddressPacketFilter(new IPAddress(tokens[2])));
+			filters.add(new DstAddressPacketFilter(tokens[2]));
 			filters.add(new DstPortPacketFilter(tokens[3]));
-			filters.add(new SrcAddressPacketFilter(new IPAddress(tokens[5])));
+			filters.add(new SrcAddressPacketFilter(tokens[5]));
 			filters.add(new SrcPortPacketFilter(tokens[6]));
 			PacketFilter reverseTCPFilter = new AndPacketFilter(filters.toArray(new PacketFilter[filters.size()]));
 			tcpFilter = new OrPacketFilter(forwardTCPFilter, reverseTCPFilter);
@@ -82,17 +82,31 @@ public class SnortRule implements PacketHandler<Packet> {
 		
 		PacketFilter optionsFilter;
 		
-		String sOptions = tokens[7];
+		// rebuild the poor options section
+		StringBuilder sbOptions = new StringBuilder();
+		for (int i = 7; i < tokens.length; i++) {
+			if (i != 7) sbOptions.append(" ");
+			sbOptions.append(tokens[i]);
+		}
+		String sOptions = sbOptions.toString();
+		
 		List<SnortOption> options = SnortOption.parseRuleOptions(sOptions);
 		
 		optionsFilter = new AndPacketFilter(options.toArray(new PacketFilter[options.size()]));
 		
 		rule.filter = new AndPacketFilter(tcpFilter, optionsFilter);
 		
+		System.out.println(rule);
 		return rule;
 	}
 	
 	
+	@Override
+	public String toString() {
+		return "SnortRule [action=" + action + ", filter=" + filter
+				+ ", handler=" + handler + "]";
+	}
+
 	@Override
 	public void handlePacket(Packet p) {
 		if (this.filter.allowPacket(p)) {

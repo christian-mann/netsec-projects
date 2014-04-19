@@ -1,6 +1,7 @@
 package edu.mann.netsec.packets.filter;
 
 import edu.mann.netsec.packets.Packet;
+import edu.mann.netsec.packets.PortRange;
 import edu.mann.netsec.packets.TCPPacket;
 import edu.mann.netsec.packets.UDPPacket;
 
@@ -8,57 +9,31 @@ public class SrcPortPacketFilter implements PacketFilter {
 
 	@Override
 	public String toString() {
-		return "SrcPortPacketFilter[" + lowPort + "-"
-				+ highPort + "]";
+		return "SrcPortPacketFilter[" + this.portRange.toString() + "]";
 	}
 
-	private Integer lowPort;
-	private Integer highPort;
+	private boolean any;
+	private PortRange portRange;
 	
 	public SrcPortPacketFilter(String s) {
-		String delim;
-		if (s.contains("-")) {
-			delim = "-";
-		} else if (s.contains(":")) {
-			delim = ":";
-		} else {
-			delim = null;
-		}
-		if (delim != null) {
-			String[] ports = s.split("-");
-			this.lowPort = Integer.parseInt(ports[0]);
-			this.highPort = Integer.parseInt(ports[1]);	
-		} else {
-			this.lowPort = this.highPort = Integer.parseInt(s);
-		}
+		if (s.equals("any")) this.any = true;
+		this.portRange = new PortRange(s);
 	}
 	
 	public SrcPortPacketFilter(int lowPort, int highPort) {
-		this.lowPort = lowPort;
-		this.highPort = highPort;
+		this.portRange = new PortRange(lowPort, highPort);
 	}
 
 	@Override
 	public boolean allowPacket(Packet p) {
-		if (p == null) return false;
-		do {
-			if (p.getType() == "tcp") {
-				if (p instanceof TCPPacket) {
-					int srcPort = ((TCPPacket)p).srcPort;
-					if (this.lowPort <= srcPort && srcPort <= this.highPort) {
-						return true;
-					}
-				}
-			} else if (p.getType() == "udp") {
-				if (p instanceof UDPPacket) {
-					int srcPort = ((UDPPacket)p).srcPort;
-					if (this.lowPort <= srcPort && srcPort <= this.highPort) {
-						return true;
-					}
-				}
-			}
-			p = p.childPacket();
-		} while (p != null);
+		TCPPacket tcp = (TCPPacket) p.ancestorByType("tcp");
+		UDPPacket udp = (UDPPacket) p.ancestorByType("udp");
+		
+		if (tcp != null && this.portRange.contains(tcp.srcPort)) return true;
+		if (udp != null && this.portRange.contains(udp.srcPort)) return true;
+		
+		if (tcp == null && udp == null && this.any) return true;
+		
 		return false;
 	}
 

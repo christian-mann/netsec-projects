@@ -11,7 +11,6 @@ public class ICMPPacket extends Packet {
 	public byte code;
 	private short checksum;
 	private int otherHeader;
-	private ByteBuffer payload;
 
 	public ICMPPacket(ByteBuffer data) {
 		this.data = data.duplicate();
@@ -20,7 +19,11 @@ public class ICMPPacket extends Packet {
 	
 	@Override
 	public Packet childPacket() {
-		if (payload.remaining() > 0) return new RawPacket(payload.duplicate());
+		if (payload.remaining() > 0) {
+			RawPacket raw = new RawPacket(payload.duplicate());
+			raw.parent = this;
+			return raw;
+		}
 		else return null;
 	}
 	

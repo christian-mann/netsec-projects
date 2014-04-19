@@ -35,6 +35,10 @@ public class ARPPacket extends Packet {
 	public Packet childPacket() {
 		return null;
 	}
+	
+	public ByteBuffer getPayload() {
+		return null;
+	}
 
 	@Override
 	public ByteBuffer getData() {

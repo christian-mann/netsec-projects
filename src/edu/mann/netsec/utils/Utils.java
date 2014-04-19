@@ -102,6 +102,9 @@ public class Utils {
 		}));
 		try {
 			Service.getServiceByPort(80, "tcp");
+		} catch (NoClassDefFoundError e) {
+			// well... whatever then
+			
 		} finally {
 			System.setErr(err);
 		}

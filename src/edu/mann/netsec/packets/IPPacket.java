@@ -10,23 +10,38 @@ import edu.mann.netsec.utils.GridFormatter;
 import edu.mann.netsec.utils.Utils;
 
 public class IPPacket extends Packet {
+	@Override
+	public String toString() {
+		String className = this.isFragment() ? "IPFragment" : "IPPacket";
+		return className + "[version=" + version + ", ihl="
+		+ ihl + ", typeOfService=" + typeOfService + ", totalLength="
+		+ totalLength + ", identification=" + identification
+		+ ", reserved=" + reserved + ", dontFragment=" + dontFragment
+		+ ", moreFragments=" + moreFragments + ", fragmentOffset="
+		+ fragmentOffset + ", timeToLive=" + timeToLive + ", protocol="
+		+ protocol + ", headerChecksum=" + headerChecksum
+		+ ", srcAddress=" + srcAddress + ", dstAddress=" + dstAddress
+		+ ", options=" + options
+		+ ", fragments=" + (fragments==null ? 0 : fragments.size())
+		+ ", sid=" + sid + "]";
+	}
+
 	private ByteBuffer data;
-	
+
 	private int version;
 	private int ihl; // num of 32-bit words forming the header
 	public int typeOfService;
 	int totalLength; // in bytes
 	public int identification;
-	private boolean reserved;
-	private boolean dontFragment;
-	boolean moreFragments;
+	public boolean reserved;
+	public boolean dontFragment;
+	public boolean moreFragments;
 	public int fragmentOffset;
 	public int timeToLive;
 	int protocol;
 	private int headerChecksum;
 	public IPAddress srcAddress; // need public for packet filter
 	public IPAddress dstAddress; // need public for packet filter
-	private ByteBuffer payload;
 
 	private List<IPOption> options;
 
@@ -41,31 +56,48 @@ public class IPPacket extends Packet {
 	}
 
 	public Packet childPacket() {
+		Packet child = null;
+		if (this.isFragment()) {
+			// this doesn't have a direct child
+			// so we throw it in the IPQueue
+			// and see what we get back out
+			IPQueue.addFragment(this);
+			IPPacket ipp = IPQueue.getPacket();
+			if (ipp == null) return null;
+			ipp.parent = this; // sure, why not
+			return ipp; // might be null
+		}
 		if (this.payload.remaining() == 0) return null;
 		else switch(this.protocol) {
-			case 1:
-				return new ICMPPacket(this.payload.duplicate());
-			case 6:
-				return new TCPPacket(this.payload.duplicate());
-			case 17:
-				return new UDPPacket(this.payload.duplicate());
-			default:
-				return new RawPacket(this.payload.duplicate());
+		case 1:
+			child = new ICMPPacket(this.payload.duplicate());
+			break;
+		case 6:
+			child = new TCPPacket(this.payload.duplicate());
+			break;
+		case 17:
+			child = new UDPPacket(this.payload.duplicate());
+			break;
+		default:
+			child = new RawPacket(this.payload.duplicate());
+			break;
 		}
+		child.parent = this;
+		return child;
 	}
-	
+
 	public ByteBuffer getData() {
 		return this.data.duplicate();
 	}
-	
+
 	@Override
 	public String getType() {
 		return "ip";
 	}
-	
+
 	public void parseData(ByteBuffer data) {
 		byte b;
-		
+
 		b = data.get();
 		this.version = Utils.intFromBits(b, 0, 4);
 		this.ihl = Utils.intFromBits(b, 4, 8);
@@ -74,7 +106,7 @@ public class IPPacket extends Packet {
 		this.totalLength = data.getShort() & 0xFFFF;
 		// use total length to limit buffer
 		this.identification = data.getShort() & 0xFFFF;
-		
+
 		b = data.get();
 		this.reserved = Utils.intFromBits(b, 0, 1) == 1;
 		this.dontFragment = Utils.intFromBits(b, 1, 2) == 1;
@@ -98,7 +130,7 @@ public class IPPacket extends Packet {
 			data.get(optionData);
 			this.options.add(new IPOption(optionData));
 		}
-		
+
 		int payloadLength = (this.totalLength - this.ihl * 4);
 		data.limit(data.position() + payloadLength);
 
@@ -129,14 +161,14 @@ public class IPPacket extends Packet {
 		for (IPOption op : this.options) {
 			gf.append(32, op.toString());
 		}
-		
+
 		StringBuilder fragBuilder = new StringBuilder();
-		if (this.fragments != null && !this.fragments.isEmpty()) {
-			for (IPPacket f : this.fragments) {
-				fragBuilder.append(f.prettyPrint());
-				fragBuilder.append("\n");
-			}
-		}
+		//		if (this.fragments != null && !this.fragments.isEmpty()) {
+		//			for (IPPacket f : this.fragments) {
+		//				fragBuilder.append(f.prettyPrint());
+		//				fragBuilder.append("\n");
+		//			}
+		//		}
 		if (this.isFragment()) {
 			return "IP Fragment:\n" + gf.format(32) + (new RawPacket(this.payload.duplicate()).prettyPrint());
 		} else {
@@ -150,7 +182,7 @@ public class IPPacket extends Packet {
 
 		return InternetChecksum.isValid(header);
 	}
-	
+
 	public boolean isFragment() {
 		return (this.moreFragments || this.fragmentOffset > 0);
 	}

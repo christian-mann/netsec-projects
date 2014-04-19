@@ -21,6 +21,7 @@ import edu.mann.netsec.packets.FilePacketSource;
 import edu.mann.netsec.packets.NetworkPacketSource;
 import edu.mann.netsec.packets.Packet;
 import edu.mann.netsec.packets.PacketSource;
+import edu.mann.netsec.packets.TCPPacket;
 
 /**
  * Starts the IDS component of the project.	
@@ -47,6 +48,7 @@ public class MainIDS {
 			Packet p = new EthernetPacket(bb);
 			Packet subPacket = p;
 			while (subPacket != null) {
+				System.out.println(subPacket.toString());
 				rules.handlePacket(subPacket);
 				subPacket = subPacket.childPacket();
 			}

@@ -17,12 +17,7 @@ public class TypePacketFilter implements PacketFilter {
 
 	@Override
 	public boolean allowPacket(Packet p) {
-		do {
-			if (p.getType().equals(this.type))
-				return true;
-			p = p.childPacket();
-		} while (p != null);
-		return false;
+		return p.getType().equals(this.type);
 	}
 
 }

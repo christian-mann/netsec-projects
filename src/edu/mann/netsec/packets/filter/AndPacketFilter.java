@@ -8,7 +8,7 @@ public class AndPacketFilter implements PacketFilter {
 
 	@Override
 	public String toString() {
-		return "AndPacketFilter[" + Arrays.toString(filters) + "]";
+		return "AndPacketFilter" + Arrays.toString(filters);
 	}
 
 	protected PacketFilter[] filters;

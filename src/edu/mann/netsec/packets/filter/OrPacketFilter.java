@@ -8,7 +8,7 @@ public class OrPacketFilter implements PacketFilter {
 
 	@Override
 	public String toString() {
-		return "OrPacketFilter[" + Arrays.toString(filters) + "]";
+		return "OrPacketFilter" + Arrays.toString(filters);
 	}
 
 	protected PacketFilter[] filters;

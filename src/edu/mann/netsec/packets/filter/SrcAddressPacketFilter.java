@@ -24,21 +24,8 @@ public class SrcAddressPacketFilter implements PacketFilter {
 
 	@Override
 	public boolean allowPacket(Packet p) {
-		// look for the ip packet
-		while (p.getType() != "ip") {
-			p = p.childPacket();
-			if (p == null) return false;
-		}
-		if (p instanceof IPPacket) {
-			IPPacket ipp = (IPPacket)p;
-			if (ipp.srcAddress.equals(this.srcIP)) {
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			return false;
-		}
+		IPPacket ip = (IPPacket) p.ancestorByType("ip");
+		return ip != null && this.srcIP.contains(ip.srcAddress);
 	}
 
 }

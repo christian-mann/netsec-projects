@@ -8,6 +8,7 @@ public abstract class Packet {
 	
 	private Date timestamp;
 	protected ByteBuffer payload;
+	protected Packet parent = null;
 	
 	public Packet() {
 		this.setTimestamp(new Date());
@@ -48,5 +49,17 @@ public abstract class Packet {
 
 	public ByteBuffer getPayload() {
 		return this.payload.duplicate();
+	}
+
+	public Packet parentPacket() {
+		return parent;
+	}
+	
+	public Packet ancestorByType(String string) {
+		Packet p = this;
+		while(p != null && !p.getType().equals(string)) {
+			p = p.parentPacket();
+		}
+		return p;
 	}
 }

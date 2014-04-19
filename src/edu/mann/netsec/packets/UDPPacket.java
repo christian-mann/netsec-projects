@@ -28,7 +28,11 @@ public class UDPPacket extends Packet {
 	@Override
 	public Packet childPacket() {
 		if (this.payload.remaining() == 0) return null;
-		else return new RawPacket(this.payload.duplicate());
+		else {
+			Packet raw = new RawPacket(this.payload.duplicate());
+			raw.parent = this;
+			return raw;
+		}
 	}
 	
 	public ByteBuffer getData() {

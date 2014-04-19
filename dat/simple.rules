@@ -1,0 +1,1 @@
+alert ip any any <> any any (content:"|00 40 f4|";)

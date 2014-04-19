@@ -20,15 +20,28 @@ public class TCPPacket extends Packet {
 	public long seqNum; /* unsigned int */
 	public long ackNum; /* unsigned int */
 	private int dataOffset;
-	private boolean ns;
-	private boolean cwr;
-	private boolean ece;
-	private boolean urg;
-	private boolean ack;
-	private boolean psh;
-	private boolean rst;
-	private boolean syn;
-	private boolean fin;
+	public boolean ns;
+	public boolean cwr;
+	public boolean ece;
+	public boolean urg;
+	public boolean ack;
+	public boolean psh;
+	
+	@Override
+	public String toString() {
+		return "TCPPacket [data=" + data + ", srcPort=" + srcPort
+				+ ", dstPort=" + dstPort + ", seqNum=" + seqNum + ", ackNum="
+				+ ackNum + ", dataOffset=" + dataOffset + ", ns=" + ns
+				+ ", cwr=" + cwr + ", ece=" + ece + ", urg=" + urg + ", ack="
+				+ ack + ", psh=" + psh + ", rst=" + rst + ", syn=" + syn
+				+ ", fin=" + fin + ", windowSize=" + windowSize + ", checksum="
+				+ checksum + ", urgentPointer=" + urgentPointer + ", payload="
+				+ payload + ", options=" + options + "]";
+	}
+
+	public boolean rst;
+	public boolean syn;
+	public boolean fin;
 	private int windowSize; /* unsigned short */
 	private int checksum; /* unsigned short */
 	private int urgentPointer; /* unsigned short */
@@ -43,7 +56,11 @@ public class TCPPacket extends Packet {
 
 	public Packet childPacket() {
 		if (this.payload.remaining() == 0) return null;
-		else return new RawPacket(this.data.duplicate());
+		else {
+			Packet raw = new RawPacket(this.data.duplicate());
+			raw.parent = this;
+			return raw;
+		}
 	}
 	
 	public ByteBuffer getData() {

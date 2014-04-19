@@ -4,12 +4,22 @@ public class IPRange {
 
 	private IPAddress addr;
 	private IPAddress mask;
-
+	
+	/**
+	 * currently accepts:
+	 * ip address
+	 * address/cidr
+	 * "any"
+	 */
 	public IPRange(String s) {
 		// currently accepts:
 		// ip address
 		// address/cidr
-		if (s.contains("/")) {
+		// "any"
+		if (s.equals("any")) {
+			this.addr = new IPAddress("0.0.0.0");
+			this.mask = new IPAddress("0.0.0.0");
+		} else if (s.contains("/")) {
 			String[] pair = s.split("/");
 			String addr = pair[0];
 			String cidr = pair[1];
@@ -45,5 +55,10 @@ public class IPRange {
 		}
 		
 		return new IPAddress(bytes);
+	}
+
+	@Override
+	public String toString() {
+		return "IPRange[addr=" + addr + ", mask=" + mask + "]";
 	}
 }

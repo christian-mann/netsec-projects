@@ -8,6 +8,7 @@ import java.util.LinkedList;
 
 import edu.mann.netsec.packets.Packet;
 
+@SuppressWarnings("serial")
 public class SnortRuleList extends LinkedList<SnortRule> {
 	public void handlePacket(Packet p) {
 		for (SnortRule rule : this) {
@@ -26,6 +27,8 @@ public class SnortRuleList extends LinkedList<SnortRule> {
 			SnortRule r = SnortRule.parse(line);
 			rules.add(r);
 		}
+		
+		br.close();
 		
 		return rules;
 	}

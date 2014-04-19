@@ -20,19 +20,30 @@ public class EthernetPacket extends Packet {
 	public Packet childPacket() {
 		switch (this.type) { 
 		case 0x0800:
-			IPPacket p = new IPPacket(this.payload.duplicate());
-			IPQueue.addFragment(p);
-			return IPQueue.getPacket();
+			IPPacket ipp = new IPPacket(this.payload.duplicate());
+			ipp.parent = this;
+			return ipp;
 		case 0x0806:
-			return new ARPPacket(this.payload.duplicate());
+			ARPPacket arp = new ARPPacket(this.payload.duplicate());
+			arp.parent = this;
+			return arp;
 		default:
-			if (this.payload.remaining() > 0)
-				return new RawPacket(this.payload.duplicate());
-			else
+			if (this.payload.remaining() > 0) {
+				RawPacket raw = new RawPacket(this.payload.duplicate());
+				raw.parent = this;
+				return raw;
+			} else {
 				return null;
+			}
 		}
 	}
 	
+	@Override
+	public String toString() {
+		return "EthernetPacket [dstAddr=" + dstAddr
+				+ ", srcAddr=" + srcAddr + ", type=" + type + "]";
+	}
+
 	public ByteBuffer getData() {
 		return this.data.duplicate();
 	}
