@@ -34,6 +34,14 @@ public class IPAddress extends Address {
 		return sb.toString();
 	}
 	
+	public IPAddress logicalAnd(IPAddress other) {
+		byte[] newAddr = new byte[4];
+		for (int i = 0; i < newAddr.length; i++) {
+			newAddr[i] = (byte) (this.addr[i] & other.addr[i]);
+		}
+		return new IPAddress(newAddr);
+	}
+	
 	public boolean equals(IPAddress other) {
 		return Arrays.equals(this.addr, other.addr);
 	}

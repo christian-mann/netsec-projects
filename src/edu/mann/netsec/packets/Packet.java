@@ -2,10 +2,12 @@ package edu.mann.netsec.packets;
 
 import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.List;
 
 public abstract class Packet {
 	
 	private Date timestamp;
+	protected ByteBuffer payload;
 	
 	public Packet() {
 		this.setTimestamp(new Date());
@@ -42,5 +44,9 @@ public abstract class Packet {
 
 	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
+	}
+
+	public ByteBuffer getPayload() {
+		return this.payload.duplicate();
 	}
 }

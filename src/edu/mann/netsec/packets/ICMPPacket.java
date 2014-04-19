@@ -7,8 +7,8 @@ import edu.mann.netsec.utils.GridFormatter;
 public class ICMPPacket extends Packet {
 
 	private ByteBuffer data;
-	private byte type;
-	private byte code;
+	public byte type;
+	public byte code;
 	private short checksum;
 	private int otherHeader;
 	private ByteBuffer payload;

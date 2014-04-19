@@ -14,14 +14,14 @@ public class IPPacket extends Packet {
 	
 	private int version;
 	private int ihl; // num of 32-bit words forming the header
-	private int typeOfService;
+	public int typeOfService;
 	int totalLength; // in bytes
-	int identification;
+	public int identification;
 	private boolean reserved;
 	private boolean dontFragment;
 	boolean moreFragments;
-	int fragmentOffset;
-	private int timeToLive;
+	public int fragmentOffset;
+	public int timeToLive;
 	int protocol;
 	private int headerChecksum;
 	public IPAddress srcAddress; // need public for packet filter

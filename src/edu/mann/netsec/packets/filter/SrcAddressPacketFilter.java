@@ -2,18 +2,19 @@ package edu.mann.netsec.packets.filter;
 
 import edu.mann.netsec.packets.IPAddress;
 import edu.mann.netsec.packets.IPPacket;
+import edu.mann.netsec.packets.IPRange;
 import edu.mann.netsec.packets.Packet;
 
 public class SrcAddressPacketFilter implements PacketFilter {
 
-	private IPAddress srcIP;
+	private IPRange srcIP;
 
 	public SrcAddressPacketFilter(String s) {
-		this(new IPAddress(s));
+		this.srcIP = new IPRange(s);
 	}
 	
 	public SrcAddressPacketFilter(IPAddress ip) {
-		this.srcIP = ip;
+		this.srcIP = new IPRange(ip);
 	}
 
 	@Override

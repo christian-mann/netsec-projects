@@ -2,8 +2,6 @@ package edu.mann.netsec.ids.snort;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.List;
-
 import org.javatuples.Pair;
 import org.junit.Test;
 
@@ -31,5 +29,4 @@ public class SnortOptionTest {
 			e.printStackTrace();
 		}
 	}
-
 }

@@ -16,9 +16,21 @@ public class SrcPortPacketFilter implements PacketFilter {
 	private Integer highPort;
 	
 	public SrcPortPacketFilter(String s) {
-		String[] ports = s.split("-");
-		this.lowPort = Integer.parseInt(ports[0]);
-		this.highPort = Integer.parseInt(ports[1]);
+		String delim;
+		if (s.contains("-")) {
+			delim = "-";
+		} else if (s.contains(":")) {
+			delim = ":";
+		} else {
+			delim = null;
+		}
+		if (delim != null) {
+			String[] ports = s.split("-");
+			this.lowPort = Integer.parseInt(ports[0]);
+			this.highPort = Integer.parseInt(ports[1]);	
+		} else {
+			this.lowPort = this.highPort = Integer.parseInt(s);
+		}
 	}
 	
 	public SrcPortPacketFilter(int lowPort, int highPort) {

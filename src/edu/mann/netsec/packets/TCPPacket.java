@@ -17,8 +17,8 @@ public class TCPPacket extends Packet {
 	
 	public int srcPort; /* unsigned short */
 	public int dstPort; /* unsigned short */
-	private long seqNum; /* unsigned int */
-	private long ackNum; /* unsigned int */
+	public long seqNum; /* unsigned int */
+	public long ackNum; /* unsigned int */
 	private int dataOffset;
 	private boolean ns;
 	private boolean cwr;

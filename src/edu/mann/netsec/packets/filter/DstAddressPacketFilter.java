@@ -2,6 +2,7 @@ package edu.mann.netsec.packets.filter;
 
 import edu.mann.netsec.packets.IPAddress;
 import edu.mann.netsec.packets.IPPacket;
+import edu.mann.netsec.packets.IPRange;
 import edu.mann.netsec.packets.Packet;
 
 public class DstAddressPacketFilter implements PacketFilter {
@@ -11,14 +12,14 @@ public class DstAddressPacketFilter implements PacketFilter {
 		return "DstAddressPacketFilter[" + dstIP + "]";
 	}
 
-	private IPAddress dstIP;
+	private IPRange dstIP;
 
 	public DstAddressPacketFilter(String s) {
-		this(new IPAddress(s));
+		this.dstIP = new IPRange(s);
 	}
 	
-	public DstAddressPacketFilter(IPAddress ipAddress) {
-		this.dstIP = ipAddress;
+	public DstAddressPacketFilter(IPAddress ip) {
+		this.dstIP = new IPRange(ipAddress);
 	}
 
 	@Override
